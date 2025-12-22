@@ -1,0 +1,72 @@
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
+
+const AdminLogin = () => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        // Simulate login for now
+        setTimeout(() => {
+            setLoading(false);
+            navigate('/admin/dashboard');
+        }, 1500);
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div className="bg-brand-600 p-8 text-center">
+                    <h1 className="text-3xl font-bold text-white mb-2">Pacific Cargo</h1>
+                    <p className="text-brand-100">Logistics Management System</p>
+                </div>
+
+                <div className="p-8">
+                    <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">Admin Login</h2>
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-3 text-slate-400" size={20} />
+                                <input
+                                    type="email"
+                                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
+                                    placeholder="admin@pacificcargo.com"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-3 text-slate-400" size={20} />
+                                <input
+                                    type="password"
+                                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
+                                    placeholder="••••••••"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 mt-4"
+                        >
+                            {loading ? 'Signing in...' : (
+                                <>Sign In <ArrowRight size={18} /></>
+                            )}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default AdminLogin;
