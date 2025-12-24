@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Sidebar from '../components/Sidebar';
+import AdminSidebar from '../components/AdminSidebar';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -8,9 +8,9 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     return (
-        <div className="flex h-screen bg-slate-50">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto">
+        <div className="min-h-screen bg-slate-100 flex">
+            <AdminSidebar />
+            <main className="flex-1 overflow-y-auto h-screen">
                 <div className="p-8">
                     {children}
                 </div>
