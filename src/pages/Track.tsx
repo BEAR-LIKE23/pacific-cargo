@@ -1,9 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import PublicLayout from '../layouts/PublicLayout';
-import { Search, Clock, Package, Truck, ArrowRight, MapPin } from 'lucide-react';
+import { Search, Clock, Package, Truck, ArrowRight, MapPin, Download } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -24,9 +25,7 @@ const TrackPage = () => {
     const [trackingId, setTrackingId] = useState('');
     const [result, setResult] = useState<any>(null);
     const [loading, setLoading] = useState(false);
-    const [scanAnimation, setScanAnimation] = useState(false); // New state for fake scan effect
-
-    // Map State
+    const [scanAnimation, setScanAnimation] = useState(false);
     const [coords, setCoords] = useState<[number, number] | null>(null);
 
     const handleTrack = async (e: React.FormEvent) => {
@@ -57,7 +56,7 @@ const TrackPage = () => {
                 return;
             }
 
-            // Synthesize events for now since we don't have an events table
+            // Synthesize events
             const events = [
                 {
                     date: new Date(data.created_at).toLocaleDateString(),
@@ -69,25 +68,22 @@ const TrackPage = () => {
 
             if (data.status !== 'Pending') {
                 events.unshift({
-                    date: new Date().toLocaleDateString(), // Mocking current time for update
+                    date: new Date().toLocaleDateString(),
                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                     status: data.status,
                     location: data.current_location || 'In Transit'
                 });
             }
 
-            // Geocode the current location
+            // Geocode
             if (data.current_location) {
                 await geocodeLocation(data.current_location);
-            } else {
-                // Default to generic coords if no location (e.g. Center of Earth/Sea) - Or dont show map
-                // Let's try to geocode destination if current is empty, or just null
             }
 
             setResult({
                 id: data.tracking_code,
                 status: data.status,
-                origin: data.sender_address ? data.sender_address.split(',').pop()?.trim() : 'Unknown', // Rough extraction
+                origin: data.sender_address ? data.sender_address.split(',').pop()?.trim() : 'Unknown',
                 destination: data.destination,
                 eta: data.estimated_delivery ? new Date(data.estimated_delivery).toLocaleDateString() : 'Pending',
                 carrier: data.carrier || 'Pacific Logistics',
@@ -118,12 +114,25 @@ const TrackPage = () => {
         }
     };
 
-    const RecenterMap = ({ coords }: { coords: [number, number] }) => {
-        const map = useMap();
-        useEffect(() => {
-            map.setView(coords, 10);
-        }, [coords]);
-        return null;
+    const handleDownloadPDF = async () => {
+        if (!result) return;
+
+        const input = document.getElementById('waybill-content');
+        if (!input) return;
+
+        try {
+            const canvas = await html2canvas(input, { scale: 2 } as any);
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Waybill-${result.id}.pdf`);
+        } catch (err) {
+            console.error("PDF generation failed", err);
+            alert("Failed to generate PDF");
+        }
     };
 
     return (
@@ -164,7 +173,6 @@ const TrackPage = () => {
 
                 {result && (
                     <div className="max-w-5xl mx-auto animate-fade-in-up space-y-8">
-
                         {/* Status Overview Card */}
                         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
                             <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50">
@@ -177,8 +185,8 @@ const TrackPage = () => {
                                 </div>
                                 <div className="text-right">
                                     <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm shadow-sm ${result.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
-                                            result.status === 'In Transit' ? 'bg-blue-100 text-blue-700' :
-                                                'bg-yellow-100 text-yellow-700'
+                                        result.status === 'In Transit' ? 'bg-blue-100 text-blue-700' :
+                                            'bg-yellow-100 text-yellow-700'
                                         }`}>
                                         <Truck size={18} />
                                         {result.status}
@@ -249,10 +257,78 @@ const TrackPage = () => {
                                     <DetailItem label="Type" value="Package/Parcel" />
                                 </div>
                                 <div className="mt-8 pt-6 border-t border-slate-100">
-                                    <button className="w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition">
-                                        Print Waybill
+                                    <button
+                                        onClick={handleDownloadPDF}
+                                        className="w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition flex items-center justify-center gap-2"
+                                    >
+                                        <Download size={18} /> Download Waybill (PDF)
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Hidden Waybill for PDF Generation */}
+                        <div className="absolute top-0 left-[-9999px] w-[210mm] bg-white p-[20mm] text-slate-900" id="waybill-content">
+                            <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-slate-100">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-slate-900 mb-1">Pacific Cargo</h1>
+                                    <p className="text-slate-500 text-sm">Global Logistics & Freight Solutions</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="bg-slate-900 text-white px-3 py-1 rounded-full text-xs font-bold mb-2 inline-block">
+                                        {result?.status?.toUpperCase()}
+                                    </span>
+                                    <div className="font-mono text-xl font-bold">{result?.id}</div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-12 mb-12">
+                                <div>
+                                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 border-b border-slate-100 pb-2">Origin</h3>
+                                    <div className="space-y-1">
+                                        <p className="font-bold text-lg">{result?.origin}</p>
+                                        <p className="text-slate-500 text-sm">Sender details on file</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 border-b border-slate-100 pb-2">Destination</h3>
+                                    <div className="space-y-1">
+                                        <p className="font-bold text-lg">{result?.destination}</p>
+                                        <p className="text-slate-500 text-sm">ETA: {result?.eta}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mb-12">
+                                <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 border-b border-slate-100 pb-2">Shipment Details</h3>
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-slate-50 text-slate-500">
+                                        <tr>
+                                            <th className="p-3">Item Description</th>
+                                            <th className="p-3">Weight</th>
+                                            <th className="p-3">Service</th>
+                                            <th className="p-3">Carrier</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        <tr>
+                                            <td className="p-3 font-medium">Logistics Package / Cargo</td>
+                                            <td className="p-3">{result?.weight} kg</td>
+                                            <td className="p-3">{result?.service}</td>
+                                            <td className="p-3">{result?.carrier}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="bg-slate-50 p-6 rounded-xl mb-12">
+                                <h3 className="text-xs font-bold uppercase text-slate-400 mb-2">Detailed Tracking</h3>
+                                <div className="font-mono text-sm">Current Location: <span className="font-bold text-slate-900">{result?.current_location || 'Processing'}</span></div>
+                            </div>
+
+                            <div className="text-center text-xs text-slate-400 border-t border-slate-100 pt-8">
+                                <p>This document is an official receipt of shipment generated by Pacific Cargo Logistics Systems.</p>
+                                <p className="mt-1">&copy; {new Date().getFullYear()} Pacific Cargo. All rights reserved.</p>
                             </div>
                         </div>
                     </div>
@@ -268,5 +344,13 @@ const DetailItem = ({ label, value }: { label: string, value: string }) => (
         <span className="font-bold text-slate-700 text-sm text-right truncate max-w-[150px]">{value}</span>
     </div>
 );
+
+const RecenterMap = ({ coords }: { coords: [number, number] }) => {
+    const map = useMap();
+    useEffect(() => {
+        map.setView(coords, 10);
+    }, [coords]);
+    return null;
+};
 
 export default TrackPage;
