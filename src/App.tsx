@@ -11,6 +11,7 @@ import EmailConfirmation from './pages/auth/EmailConfirmation';
 import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminShipments from './pages/admin/AdminShipments';
+import AdminCreateShipment from './pages/admin/AdminCreateShipment';
 import AdminUsers from './pages/admin/AdminUsers';
 import Home from './pages/Home';
 import Services from './pages/Services';
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/admin/login" element={<Login />} />
                 <Route path="/admin/dashboard" element={<SuperAdminDashboard />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/create-shipment" element={<AdminCreateShipment />} />
                 <Route path="/admin/shipments" element={<AdminShipments />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
             </Routes>

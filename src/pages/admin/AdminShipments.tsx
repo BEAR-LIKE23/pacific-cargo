@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
+import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Search, CheckCircle, XCircle, AlertCircle, Edit2, MapPin, Save, X } from 'lucide-react';
+import { Search, CheckCircle, XCircle, AlertCircle, Edit2, MapPin, Save, X, Plus } from 'lucide-react';
 
 const AdminShipments = () => {
     const [shipments, setShipments] = useState<any[]>([]);
@@ -110,6 +111,9 @@ const AdminShipments = () => {
                     <h1 className="text-2xl font-bold text-slate-900">Shipment Management</h1>
                     <p className="text-slate-500">View and manage all user shipments</p>
                 </div>
+                <Link to="/admin/create-shipment" className="bg-brand-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-brand-700 transition">
+                    <Plus size={20} /> New Shipment
+                </Link>
             </div>
 
             {/* Filters */}
