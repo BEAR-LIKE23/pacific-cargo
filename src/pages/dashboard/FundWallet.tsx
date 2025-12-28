@@ -5,6 +5,7 @@ import { CreditCard, Bitcoin, Landmark, Copy, CheckCircle2, ArrowRight } from 'l
 import { usePaystackPayment } from 'react-paystack';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import Toast, { ToastType } from '../../components/Toast';
 
 const FundWallet = () => {
     const navigate = useNavigate();
@@ -14,6 +15,17 @@ const FundWallet = () => {
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [balance, setBalance] = useState(0);
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+    const showToast = (message: string, type: ToastType = 'success') => {
+        setToast({ message, type });
+    };
+    const [appSettings, setAppSettings] = useState({
+        bank_name: 'OPAY',
+        account_number: '8147398327',
+        account_name: 'MICHAEL MAYOWA OGUNSAKIN',
+        btc_address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'
+    });
 
     // Paystack Config
     const config = {
@@ -35,6 +47,23 @@ const FundWallet = () => {
             setUser(user);
             const { data: profile } = await supabase.from('profiles').select('balance').eq('id', user.id).single();
             if (profile) setBalance(profile.balance);
+
+            // Fetch App Settings
+            const { data: settings } = await supabase.from('app_settings').select('*').single();
+            if (settings) {
+                setAppSettings({
+                    bank_name: settings.bank_name || 'Pacific Bank',
+                    account_number: settings.account_number || '',
+                    account_name: settings.account_name || 'Pacific Cargo',
+                    btc_address: settings.btc_address || ''
+                });
+            } else {
+                // Try fallback fetch
+                const { data: list } = await supabase.from('app_settings').select('*').limit(1);
+                if (list && list.length > 0) {
+                    setAppSettings(list[0]);
+                }
+            }
         } else {
             navigate('/login');
         }
@@ -46,35 +75,37 @@ const FundWallet = () => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const onSuccess = async () => {
+    const onSuccess = async (response: any) => {
         setLoading(true);
-        // 1. Create Transaction Record
-        const { error: txError } = await supabase.from('transactions').insert({
-            user_id: user.id,
-            amount: parseFloat(amount),
-            type: 'deposit',
-            status: 'completed',
-            method: 'card',
-            description: 'Wallet funding via Paystack'
-        });
+        console.log('Paystack success response:', response);
+        try {
+            // Paystack sometimes returns reference in response.reference or response.trxref
+            const referenceId = response.reference || response.trxref || `PS-${Date.now()}`;
 
-        // 2. Update User Balance (Ideally use RPC function for safety, but direct update for MVP)
-        const { error: balError } = await supabase.from('profiles').update({
-            balance: balance + parseFloat(amount)
-        }).eq('id', user.id);
+            // Use secure RPC function to update balance and record transaction
+            const { error } = await supabase.rpc('add_wallet_funds', {
+                amount: parseFloat(amount),
+                reference_id: referenceId,
+                user_id: user.id // Pass user_id explicitly for robustness
+            });
 
-        if (!txError && !balError) {
-            alert('Payment Successful! Wallet funded.');
+            if (error) {
+                console.error('RPC Error details:', error);
+                throw error;
+            }
+
+            showToast('Payment Successful! Wallet funded.');
             fetchUserData(); // Refresh balance
             setAmount('');
-        } else {
-            alert('Payment succeeded but creating record failed. Contact support.');
+        } catch (err) {
+            console.error(err);
+            showToast('Payment succeeded but wallet update failed. Contact support.', 'error');
         }
         setLoading(false);
     };
 
     const onClose = () => {
-        alert('Payment cancelled.');
+        showToast('Payment cancelled.', 'info');
         setLoading(false);
     };
 
@@ -92,9 +123,9 @@ const FundWallet = () => {
         });
 
         if (error) {
-            alert('Error creating request.');
+            showToast('Error creating request.', 'error');
         } else {
-            alert('Deposit request submitted! Admin will approve shortly.');
+            showToast('Deposit request submitted! Admin will approve shortly.');
             setAmount('');
         }
         setLoading(false);
@@ -113,6 +144,7 @@ const FundWallet = () => {
 
     return (
         <UserLayout>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -180,9 +212,9 @@ const FundWallet = () => {
                                     </div>
 
                                     <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between group">
-                                        <code className="text-slate-600 font-mono text-sm break-all">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</code>
+                                        <code className="text-slate-600 font-mono text-sm break-all">{appSettings.btc_address}</code>
                                         <button
-                                            onClick={() => handleCopy('bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh')}
+                                            onClick={() => handleCopy(appSettings.btc_address)}
                                             className="p-2 text-slate-400 hover:text-brand-600 transition"
                                         >
                                             {copied ? <CheckCircle2 size={20} className="text-emerald-500" /> : <Copy size={20} />}
@@ -211,20 +243,20 @@ const FundWallet = () => {
                                     <div className="grid sm:grid-cols-2 gap-4">
                                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                                             <p className="text-xs text-slate-500 uppercase font-bold mb-1">Bank Name</p>
-                                            <p className="font-bold text-slate-900">Pacific Bank</p>
+                                            <p className="font-bold text-slate-900">{appSettings.bank_name}</p>
                                         </div>
                                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                                             <p className="text-xs text-slate-500 uppercase font-bold mb-1">Account Number</p>
                                             <div className="flex items-center justify-between">
-                                                <p className="font-bold text-slate-900 font-mono">1234567890</p>
-                                                <button onClick={() => handleCopy('1234567890')} className="text-slate-400 hover:text-brand-600">
+                                                <p className="font-bold text-slate-900 font-mono">{appSettings.account_number}</p>
+                                                <button onClick={() => handleCopy(appSettings.account_number)} className="text-slate-400 hover:text-brand-600">
                                                     <Copy size={16} />
                                                 </button>
                                             </div>
                                         </div>
                                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 sm:col-span-2">
                                             <p className="text-xs text-slate-500 uppercase font-bold mb-1">Account Name</p>
-                                            <p className="font-bold text-slate-900">Pacific Cargo Logistics Ltd</p>
+                                            <p className="font-bold text-slate-900">{appSettings.account_name}</p>
                                         </div>
                                     </div>
                                 </div>

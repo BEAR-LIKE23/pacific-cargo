@@ -3,12 +3,14 @@ import AdminLayout from '../../layouts/AdminLayout';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Search, CheckCircle, XCircle, AlertCircle, Edit2, MapPin, Save, X, Plus } from 'lucide-react';
+import Toast, { ToastType } from '../../components/Toast';
 
 const AdminShipments = () => {
     const [shipments, setShipments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // all, pending_approval, in_transit
     const [searchTerm, setSearchTerm] = useState('');
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
     // Edit Modal State
     const [editingShipment, setEditingShipment] = useState<any>(null);
@@ -16,19 +18,48 @@ const AdminShipments = () => {
     const [updating, setUpdating] = useState(false);
 
     useEffect(() => {
+        let subscription: any;
+
+        const fetchShipments = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('shipments')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) console.error(error);
+            if (data) setShipments(data);
+            setLoading(false);
+
+            // Subscribe to all shipment changes
+            subscription = supabase
+                .channel('admin_shipment_updates')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'shipments'
+                }, (payload) => {
+                    if (payload.eventType === 'INSERT') {
+                        setShipments(prev => [payload.new, ...prev]);
+                        showToast(`New shipment created: ${payload.new.tracking_code}`, 'info');
+                    } else if (payload.eventType === 'UPDATE') {
+                        setShipments(prev => prev.map(s => s.id === payload.new.id ? payload.new : s));
+                    } else if (payload.eventType === 'DELETE') {
+                        setShipments(prev => prev.filter(s => s.id !== payload.old.id));
+                    }
+                })
+                .subscribe();
+        };
+
         fetchShipments();
+
+        return () => {
+            if (subscription) supabase.removeChannel(subscription);
+        };
     }, []);
 
-    const fetchShipments = async () => {
-        setLoading(true);
-        const { data, error } = await supabase
-            .from('shipments')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) console.error(error);
-        if (data) setShipments(data);
-        setLoading(false);
+    const showToast = (message: string, type: ToastType = 'success') => {
+        setToast({ message, type });
     };
 
     const handleApprovePayment = async (id: string) => {
@@ -43,9 +74,9 @@ const AdminShipments = () => {
             .eq('id', id);
 
         if (error) {
-            alert('Error approving payment');
+            showToast('Error approving payment', 'error');
         } else {
-            fetchShipments();
+            showToast('Payment Approved');
         }
     };
 
@@ -56,8 +87,8 @@ const AdminShipments = () => {
             .update({ payment_status: 'Rejected' })
             .eq('id', id);
 
-        if (error) alert('Error rejecting payment');
-        else fetchShipments();
+        if (error) showToast('Error rejecting payment', 'error');
+        else showToast('Payment Rejected', 'info');
     };
 
     const openEditModal = (shipment: any) => {
@@ -89,11 +120,11 @@ const AdminShipments = () => {
         setUpdating(false);
 
         if (error) {
-            alert('Failed to update shipment.');
+            showToast('Failed to update shipment.', 'error');
             console.error(error);
         } else {
+            showToast('Shipment Updated successfully');
             closeEditModal();
-            fetchShipments();
         }
     };
 
@@ -106,6 +137,7 @@ const AdminShipments = () => {
 
     return (
         <AdminLayout>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Shipment Management</h1>

@@ -1,6 +1,7 @@
 
 import { LayoutDashboard, Package, PlusCircle, Wallet, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import clsx from 'clsx';
 
 const UserSidebar = () => {
@@ -41,8 +42,8 @@ const UserSidebar = () => {
 
             <div className="p-4 border-t border-slate-800">
                 <button
-                    onClick={() => {
-                        // Clear any user session data if needed
+                    onClick={async () => {
+                        await supabase.auth.signOut();
                         window.location.href = '/login';
                     }}
                     className="flex items-center space-x-3 px-4 py-3 w-full text-slate-400 hover:text-white transition-colors"

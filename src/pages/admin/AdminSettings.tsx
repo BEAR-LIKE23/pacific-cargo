@@ -1,41 +1,101 @@
-
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
+import { supabase } from '../../lib/supabase';
 import { Save, AlertCircle } from 'lucide-react';
+import Toast, { ToastType } from '../../components/Toast';
 
 const AdminSettings = () => {
-    const [bankName, setBankName] = useState('Pacific Bank');
-    const [accountNumber, setAccountNumber] = useState('1234567890');
-    const [accountName, setAccountName] = useState('Pacific Cargo Logistics Ltd');
-    const [btcAddress, setBtcAddress] = useState('bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh');
-    const [saved, setSaved] = useState(false);
+    const [settingsId, setSettingsId] = useState<string | null>(null);
+    const [bankName, setBankName] = useState('OPAY');
+    const [accountNumber, setAccountNumber] = useState('8147398327');
+    const [accountName, setAccountName] = useState('MICHAEL MAYOWA OGUNSAKIN');
+    const [btcAddress, setBtcAddress] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+    const showToast = (message: string, type: ToastType = 'success') => {
+        setToast({ message, type });
+    };
 
     useEffect(() => {
-        const settings = localStorage.getItem('adminSettings');
-        if (settings) {
-            const parsed = JSON.parse(settings);
-            setBankName(parsed.bankName || 'Pacific Bank');
-            setAccountNumber(parsed.accountNumber || '1234567890');
-            setAccountName(parsed.accountName || 'Pacific Cargo Logistics Ltd');
-            setBtcAddress(parsed.btcAddress || 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh');
-        }
+        fetchSettings();
     }, []);
 
-    const handleSave = (e: React.FormEvent) => {
-        e.preventDefault();
-        const settings = {
-            bankName,
-            accountNumber,
-            accountName,
-            btcAddress
-        };
-        localStorage.setItem('adminSettings', JSON.stringify(settings));
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+    const fetchSettings = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('app_settings')
+                .select('*')
+                .single();
+
+            if (data) {
+                setSettingsId(data.id);
+                setBankName(data.bank_name || 'OPAY');
+                setAccountNumber(data.account_number || '8147398327');
+                setAccountName(data.account_name || 'MICHAEL MAYOWA OGUNSAKIN');
+                setBtcAddress(data.btc_address || '');
+            } else if (error) {
+                // Try fetching list if single fails
+                const { data: list } = await supabase.from('app_settings').select('*').limit(1);
+                if (list && list.length > 0) {
+                    const first = list[0];
+                    setSettingsId(first.id);
+                    setBankName(first.bank_name || 'OPAY');
+                    setAccountNumber(first.account_number || '8147398327');
+                    setAccountName(first.account_name || 'MICHAEL MAYOWA OGUNSAKIN');
+                    setBtcAddress(first.btc_address || '');
+                }
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            let error;
+            if (settingsId) {
+                const { error: updateError } = await supabase
+                    .from('app_settings')
+                    .update({
+                        bank_name: bankName,
+                        account_number: accountNumber,
+                        account_name: accountName,
+                        btc_address: btcAddress,
+                        updated_at: new Date()
+                    })
+                    .eq('id', settingsId);
+                error = updateError;
+            } else {
+                const { error: insertError } = await supabase.from('app_settings').insert({
+                    bank_name: bankName,
+                    account_number: accountNumber,
+                    account_name: accountName,
+                    btc_address: btcAddress
+                });
+                error = insertError;
+                if (!error) fetchSettings();
+            }
+
+            if (error) throw error;
+            showToast('Settings Saved Successfully!');
+        } catch (err) {
+            console.error(err);
+            showToast('Failed to save settings.', 'error');
+        }
+    };
+
+    if (loading) {
+        return <AdminLayout><div className="p-8 text-slate-500">Loading settings...</div></AdminLayout>;
+    }
 
     return (
         <AdminLayout>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <div className="max-w-4xl mx-auto">
                 <div className="mb-8">
                     <h1 className="text-3xl font-extrabold text-slate-900">System Settings</h1>
@@ -111,11 +171,6 @@ const AdminSettings = () => {
                             <Save size={20} />
                             Save Configuration
                         </button>
-                        {saved && (
-                            <span className="text-emerald-600 font-medium animate-fade-in flex items-center gap-2">
-                                Settings Saved Successfully!
-                            </span>
-                        )}
                     </div>
                 </form>
             </div>

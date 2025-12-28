@@ -3,6 +3,7 @@ import UserLayout from '../../layouts/UserLayout';
 import { ArrowLeft, CreditCard, CheckCircle2, ArrowRight, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import Toast, { ToastType } from '../../components/Toast';
 
 const CreateShipment = () => {
     const navigate = useNavigate();
@@ -11,6 +12,11 @@ const CreateShipment = () => {
     const [trackingId] = useState('PCL-' + Math.floor(10000000 + Math.random() * 90000000));
     const [user, setUser] = useState<any>(null);
     const [balance, setBalance] = useState(0);
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+    const showToast = (message: string, type: ToastType = 'success') => {
+        setToast({ message, type });
+    };
 
     // Form State
     const [formData, setFormData] = useState({
@@ -58,32 +64,22 @@ const CreateShipment = () => {
     const handleWalletPayment = async () => {
         setLoading(true);
         try {
-            // 1. Double check balance
-            const { data: profile } = await supabase.from('profiles').select('balance').eq('id', user.id).single();
-            if (!profile || profile.balance < 10000) {
-                alert('Insufficient funds. Please fund your wallet.');
+            // 1. Double check balance (Client side check for UI)
+            if (balance < 10000) {
+                showToast('Insufficient funds. Please fund your wallet.', 'error');
                 setLoading(false);
                 return;
             }
 
-            // 2. Transact: Deduct Balance & Create Transaction
-            // Ideally use RPC, but chaining for now
-            const newBalance = profile.balance - 10000;
-
-            const { error: balanceError } = await supabase.from('profiles').update({ balance: newBalance }).eq('id', user.id);
-            if (balanceError) throw balanceError;
-
-            // 3. Log Transaction
-            await supabase.from('transactions').insert({
-                user_id: user.id,
-                amount: 10000,
-                type: 'payment',
-                status: 'completed',
-                method: 'wallet',
-                description: `Payment for shipment ${trackingId}`
+            // 2. Transact securely using RPC
+            const { error: payError } = await supabase.rpc('pay_for_shipment', {
+                shipment_cost: 10000,
+                tracking_id: trackingId
             });
 
-            // 4. Create Shipment
+            if (payError) throw payError;
+
+            // 3. Create Shipment
             const { error: shipmentError } = await supabase.from('shipments').insert({
                 tracking_code: trackingId,
                 user_id: user.id,
@@ -96,12 +92,14 @@ const CreateShipment = () => {
 
             if (shipmentError) throw shipmentError;
 
-            alert(`Shipment Created & Paid! Tracking ID: ${trackingId}`);
-            navigate('/dashboard');
+            if (shipmentError) throw shipmentError;
+
+            showToast(`Shipment Registered! Tracking ID: ${trackingId}`);
+            setTimeout(() => navigate('/dashboard'), 2000);
 
         } catch (error: any) {
             console.error(error);
-            alert('Error processing payment: ' + error.message);
+            showToast('Payment/Booking failed: ' + error.message, 'error');
         } finally {
             setLoading(false);
         }
@@ -109,6 +107,7 @@ const CreateShipment = () => {
 
     return (
         <UserLayout>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <div className="flex items-center justify-between mb-6">
                 <div>
                     {step === 1 ? (

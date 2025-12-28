@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import PublicLayout from '../layouts/PublicLayout';
-import { Search, Clock, Package, Truck, ArrowRight, MapPin, Download } from 'lucide-react';
+import { Search, MapPin, Package, Clock, Download, LayoutDashboard, Truck, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { Link } from 'react-router-dom';
+import Toast, { ToastType } from '../components/Toast';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -27,6 +29,29 @@ const TrackPage = () => {
     const [loading, setLoading] = useState(false);
     const [scanAnimation, setScanAnimation] = useState(false);
     const [coords, setCoords] = useState<[number, number] | null>(null);
+    const [user, setUser] = useState<any>(null);
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+    const showToast = (message: string, type: ToastType = 'success') => {
+        setToast({ message, type });
+    };
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            setUser(user);
+        });
+
+        // Handle direct tracking from URL
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        if (code) {
+            setTrackingId(code);
+            // Small delay to allow scan animation to breathe
+            setLoading(true);
+            setScanAnimation(true);
+            setTimeout(() => fetchShipmentData(code), 1000);
+        }
+    }, []);
 
     const handleTrack = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,39 +66,45 @@ const TrackPage = () => {
         setTimeout(() => fetchShipmentData(), 1500);
     };
 
-    const fetchShipmentData = async () => {
+    const fetchShipmentData = async (manualId?: string) => {
+        const idToSearch = manualId || trackingId;
+        if (!idToSearch.trim()) return;
+
         try {
             const { data, error } = await supabase
                 .from('shipments')
                 .select('*')
-                .eq('tracking_code', trackingId.trim())
+                .eq('tracking_code', idToSearch.trim())
                 .single();
 
             if (error || !data) {
-                alert('Tracking ID not found. Please check and try again.');
+                showToast('Tracking ID not found. Please check and try again.', 'error');
                 setLoading(false);
                 setScanAnimation(false);
                 return;
             }
 
-            // Synthesize events
-            const events = [
-                {
-                    date: new Date(data.created_at).toLocaleDateString(),
-                    time: new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    status: 'Shipment Created',
-                    location: 'Online System'
-                }
-            ];
+            // Fetch Real Events from database
+            const { data: dbEvents } = await supabase
+                .from('shipment_events')
+                .select('*')
+                .eq('shipment_id', data.id)
+                .order('created_at', { ascending: false });
 
-            if (data.status !== 'Pending') {
-                events.unshift({
-                    date: new Date().toLocaleDateString(),
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    status: data.status,
-                    location: data.current_location || 'In Transit'
-                });
-            }
+            const events = dbEvents?.map(event => ({
+                date: new Date(event.created_at).toLocaleDateString(),
+                time: new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: event.status,
+                location: event.location || 'In Transit',
+                description: event.description
+            })) || [
+                    {
+                        date: new Date(data.created_at).toLocaleDateString(),
+                        time: new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        status: 'Shipment Created',
+                        location: 'System'
+                    }
+                ];
 
             // Geocode
             if (data.current_location) {
@@ -95,7 +126,7 @@ const TrackPage = () => {
 
         } catch (err) {
             console.error(err);
-            alert('An error occurred while tracking.');
+            showToast('An error occurred while tracking.', 'error');
         } finally {
             setLoading(false);
             setScanAnimation(false);
@@ -131,14 +162,25 @@ const TrackPage = () => {
             pdf.save(`Waybill-${result.id}.pdf`);
         } catch (err) {
             console.error("PDF generation failed", err);
-            alert("Failed to generate PDF");
+            showToast("Failed to generate PDF", 'error');
         }
     };
 
     return (
         <PublicLayout>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <div className="min-h-screen bg-slate-50 py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center mb-12">
+                    {user && (
+                        <Link
+                            to="/dashboard"
+                            className="inline-flex items-center gap-2 text-brand-600 font-bold hover:text-brand-700 transition mb-6 px-4 py-2 bg-brand-50 rounded-full border border-brand-100"
+                        >
+                            <LayoutDashboard size={18} />
+                            Back to My Dashboard
+                        </Link>
+                    )}
+                    <br />
                     <span className="text-brand-600 font-bold tracking-wide uppercase text-sm bg-brand-50 px-3 py-1 rounded-full border border-brand-100 mb-4 inline-block">Global Tracking System</span>
                     <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">Track Your Cargo</h1>
                     <p className="text-slate-500 text-lg max-w-xl mx-auto">Enter your unique tracking ID to see the real-time location and status of your shipment.</p>

@@ -4,16 +4,22 @@ import { Package, Users, Activity, CheckCircle, XCircle, Clock } from 'lucide-re
 import AdminLayout from '../../layouts/AdminLayout';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import Toast, { ToastType } from '../../components/Toast';
 
 const SuperAdminDashboard = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ users: 0, shipments: 0, revenue: 0 });
     const [transactions, setTransactions] = useState<any[]>([]);
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
     useEffect(() => {
         fetchAdminData();
     }, [navigate]);
+
+    const showToast = (message: string, type: ToastType = 'success') => {
+        setToast({ message, type });
+    };
 
     const fetchAdminData = async () => {
         try {
@@ -64,7 +70,16 @@ const SuperAdminDashboard = () => {
         if (!confirm('Are you sure you want to approve this deposit?')) return;
 
         try {
-            // 1. Update Transaction Status
+            // Use Secure RPC instead of direct updates
+            const { error: rpcError } = await supabase.rpc('add_wallet_funds', {
+                user_id: userId,
+                amount: amount,
+                reference_id: txId
+            });
+
+            if (rpcError) throw rpcError;
+
+            // Update Transaction Status
             const { error: txError } = await supabase
                 .from('transactions')
                 .update({ status: 'completed' })
@@ -72,24 +87,12 @@ const SuperAdminDashboard = () => {
 
             if (txError) throw txError;
 
-            // 2. Update User Balance
-            // First get current balance to be safe
-            const { data: profile } = await supabase.from('profiles').select('balance').eq('id', userId).single();
-            const currentBal = profile?.balance || 0;
-
-            const { error: balError } = await supabase
-                .from('profiles')
-                .update({ balance: currentBal + amount })
-                .eq('id', userId);
-
-            if (balError) throw balError;
-
-            alert('Deposit Approved & Balance Updated!');
+            showToast('Deposit Approved & Wallet Funded!');
             fetchAdminData(); // Refresh
 
         } catch (err) {
             console.error(err);
-            alert('Failed to approve transaction.');
+            showToast('Failed to approve transaction.', 'error');
         }
     };
 
@@ -100,13 +103,17 @@ const SuperAdminDashboard = () => {
             .update({ status: 'failed' })
             .eq('id', txId);
 
-        if (!error) {
+        if (error) {
+            showToast('Error rejecting transaction', 'error');
+        } else {
+            showToast('Transaction Rejected', 'info');
             fetchAdminData();
         }
     };
 
     return (
         <AdminLayout>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <header className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Global Overview</h1>

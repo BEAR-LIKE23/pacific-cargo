@@ -1,6 +1,7 @@
 
-import { Activity, Users, Package, Settings, ShieldAlert, LogOut } from 'lucide-react';
+import { Activity, Users, Package, Settings, ShieldAlert, LogOut, Bell } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import clsx from 'clsx';
 
 const AdminSidebar = () => {
@@ -10,6 +11,7 @@ const AdminSidebar = () => {
         { name: 'Overview', path: '/admin/dashboard', icon: Activity },
         { name: 'User Management', path: '/admin/users', icon: Users }, // Placeholder for now
         { name: 'All Shipments', path: '/admin/shipments', icon: Package },
+        { name: 'Broadcast Messages', path: '/admin/notifications', icon: Bell },
         { name: 'System Settings', path: '/admin/settings', icon: Settings },
     ];
 
@@ -41,8 +43,8 @@ const AdminSidebar = () => {
             </nav>
             <div className="p-4 border-t border-slate-800">
                 <button
-                    onClick={() => {
-                        // Clear admin session
+                    onClick={async () => {
+                        await supabase.auth.signOut();
                         window.location.href = '/admin/login';
                     }}
                     className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-white transition"

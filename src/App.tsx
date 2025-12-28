@@ -12,6 +12,7 @@ import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminShipments from './pages/admin/AdminShipments';
 import AdminCreateShipment from './pages/admin/AdminCreateShipment';
+import AdminNotifications from './pages/admin/AdminNotifications';
 import AdminUsers from './pages/admin/AdminUsers';
 import Home from './pages/Home';
 import Services from './pages/Services';
@@ -20,7 +21,7 @@ import Contact from './pages/Contact';
 
 function App() {
     return (
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Home />} />
@@ -47,6 +48,7 @@ function App() {
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/create-shipment" element={<AdminCreateShipment />} />
                 <Route path="/admin/shipments" element={<AdminShipments />} />
+                <Route path="/admin/notifications" element={<AdminNotifications />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
             </Routes>
         </Router>

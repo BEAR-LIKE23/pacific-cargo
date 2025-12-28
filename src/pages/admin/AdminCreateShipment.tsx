@@ -3,12 +3,18 @@ import AdminLayout from '../../layouts/AdminLayout'; // Changed to AdminLayout
 import { Box } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import Toast, { ToastType } from '../../components/Toast';
 
 const AdminCreateShipment = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [trackingId] = useState('PCL-' + Math.floor(10000000 + Math.random() * 90000000));
     const [user, setUser] = useState<any>(null);
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+    const showToast = (message: string, type: ToastType = 'success') => {
+        setToast({ message, type });
+    };
 
     // Form State
     const [formData, setFormData] = useState({
@@ -60,12 +66,14 @@ const AdminCreateShipment = () => {
 
             if (shipmentError) throw shipmentError;
 
-            alert(`Admin Shipment Created! Tracking ID: ${trackingId}`);
-            navigate('/admin/shipments');
+            if (shipmentError) throw shipmentError;
+
+            showToast(`Admin Shipment Created! Tracking ID: ${trackingId}`);
+            setTimeout(() => navigate('/admin/shipments'), 2000);
 
         } catch (error: any) {
             console.error(error);
-            alert('Error creating shipment: ' + error.message);
+            showToast('Error creating shipment: ' + error.message, 'error');
         } finally {
             setLoading(false);
         }
@@ -73,6 +81,7 @@ const AdminCreateShipment = () => {
 
     return (
         <AdminLayout>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Create New Shipment (Admin)</h1>
