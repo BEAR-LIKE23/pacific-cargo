@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { Package, Users, Activity, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Package, Users, Activity, CheckCircle, XCircle, Clock, FileText } from 'lucide-react';
 import AdminLayout from '../../layouts/AdminLayout';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -176,24 +176,37 @@ const SuperAdminDashboard = () => {
                                         {new Date(tx.created_at).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        {tx.status === 'pending' && (
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleApprove(tx.id, tx.user_id, tx.amount)}
-                                                    className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
-                                                    title="Approve"
+                                        <div className="flex justify-end gap-2">
+                                            {tx.receipt_url && (
+                                                <a
+                                                    href={tx.receipt_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                    title="View Receipt"
                                                 >
-                                                    <CheckCircle size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleReject(tx.id)}
-                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                    title="Reject"
-                                                >
-                                                    <XCircle size={18} />
-                                                </button>
-                                            </div>
-                                        )}
+                                                    <FileText size={18} />
+                                                </a>
+                                            )}
+                                            {tx.status === 'pending' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleApprove(tx.id, tx.user_id, tx.amount)}
+                                                        className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
+                                                        title="Approve"
+                                                    >
+                                                        <CheckCircle size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleReject(tx.id)}
+                                                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                        title="Reject"
+                                                    >
+                                                        <XCircle size={18} />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

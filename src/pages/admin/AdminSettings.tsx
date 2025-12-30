@@ -9,7 +9,7 @@ const AdminSettings = () => {
     const [bankName, setBankName] = useState('OPAY');
     const [accountNumber, setAccountNumber] = useState('8147398327');
     const [accountName, setAccountName] = useState('MICHAEL MAYOWA OGUNSAKIN');
-    const [btcAddress, setBtcAddress] = useState('');
+    const [usdtAddress, setUsdtAddress] = useState('');
     const [loading, setLoading] = useState(true);
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
@@ -33,7 +33,7 @@ const AdminSettings = () => {
                 setBankName(data.bank_name || 'OPAY');
                 setAccountNumber(data.account_number || '8147398327');
                 setAccountName(data.account_name || 'MICHAEL MAYOWA OGUNSAKIN');
-                setBtcAddress(data.btc_address || '');
+                setUsdtAddress(data.usdt_address || '');
             } else if (error) {
                 // Try fetching list if single fails
                 const { data: list } = await supabase.from('app_settings').select('*').limit(1);
@@ -43,7 +43,7 @@ const AdminSettings = () => {
                     setBankName(first.bank_name || 'OPAY');
                     setAccountNumber(first.account_number || '8147398327');
                     setAccountName(first.account_name || 'MICHAEL MAYOWA OGUNSAKIN');
-                    setBtcAddress(first.btc_address || '');
+                    setUsdtAddress(first.usdt_address || '');
                 }
             }
         } catch (err) {
@@ -65,7 +65,7 @@ const AdminSettings = () => {
                         bank_name: bankName,
                         account_number: accountNumber,
                         account_name: accountName,
-                        btc_address: btcAddress,
+                        usdt_address: usdtAddress,
                         updated_at: new Date()
                     })
                     .eq('id', settingsId);
@@ -75,7 +75,7 @@ const AdminSettings = () => {
                     bank_name: bankName,
                     account_number: accountNumber,
                     account_name: accountName,
-                    btc_address: btcAddress
+                    usdt_address: usdtAddress
                 });
                 error = insertError;
                 if (!error) fetchSettings();
@@ -145,15 +145,15 @@ const AdminSettings = () => {
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                         <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                             Crypto Configuration
-                            <span className="text-xs font-normal text-slate-400 px-2 py-1 bg-slate-100 rounded-full">Bitcoin</span>
+                            <span className="text-xs font-normal text-slate-400 px-2 py-1 bg-slate-100 rounded-full">USDT (Tether)</span>
                         </h2>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">BTC Wallet Address</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">USDT Wallet Address (TRC20/ERC20)</label>
                             <input
                                 type="text"
-                                value={btcAddress}
-                                onChange={(e) => setBtcAddress(e.target.value)}
+                                value={usdtAddress}
+                                onChange={(e) => setUsdtAddress(e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none font-mono text-sm"
                             />
                             <p className="mt-2 text-xs text-slate-500 flex items-center gap-1">

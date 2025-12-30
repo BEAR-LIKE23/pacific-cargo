@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import UserLayout from '../../layouts/UserLayout';
-import { CreditCard, Bitcoin, Landmark, Copy, CheckCircle2, ArrowRight } from 'lucide-react';
+import { CreditCard, Coins, Landmark, Copy, CheckCircle2, ArrowRight, Upload, FileText } from 'lucide-react';
 import { usePaystackPayment } from 'react-paystack';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +16,8 @@ const FundWallet = () => {
     const [user, setUser] = useState<any>(null);
     const [balance, setBalance] = useState(0);
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+    const [receiptFile, setReceiptFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
 
     const showToast = (message: string, type: ToastType = 'success') => {
         setToast({ message, type });
@@ -24,7 +26,7 @@ const FundWallet = () => {
         bank_name: 'OPAY',
         account_number: '8147398327',
         account_name: 'MICHAEL MAYOWA OGUNSAKIN',
-        btc_address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'
+        usdt_address: ''
     });
 
     // Paystack Config
@@ -55,7 +57,7 @@ const FundWallet = () => {
                     bank_name: settings.bank_name || 'Pacific Bank',
                     account_number: settings.account_number || '',
                     account_name: settings.account_name || 'Pacific Cargo',
-                    btc_address: settings.btc_address || ''
+                    usdt_address: settings.usdt_address || ''
                 });
             } else {
                 // Try fallback fetch
@@ -113,22 +115,53 @@ const FundWallet = () => {
         e.preventDefault();
         setLoading(true);
 
-        const { error } = await supabase.from('transactions').insert({
-            user_id: user.id,
-            amount: parseFloat(amount),
-            type: 'deposit',
-            status: 'pending',
-            method: method,
-            description: `Manual deposit via ${method === 'bank' ? 'Bank Transfer' : 'Crypto'}`
-        });
+        try {
+            if (!receiptFile) {
+                showToast('Please upload proof of payment', 'error');
+                setLoading(false);
+                return;
+            }
 
-        if (error) {
-            showToast('Error creating request.', 'error');
-        } else {
-            showToast('Deposit request submitted! Admin will approve shortly.');
+            // 1. Upload Receipt
+            setUploading(true);
+            const fileExt = receiptFile.name.split('.').pop();
+            const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+            const filePath = `receipts/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('receipts')
+                .upload(filePath, receiptFile);
+
+            if (uploadError) throw uploadError;
+
+            // Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('receipts')
+                .getPublicUrl(filePath);
+
+            // 2. Create Transaction
+            const { error: txError } = await supabase.from('transactions').insert({
+                user_id: user.id,
+                amount: parseFloat(amount),
+                type: 'deposit',
+                status: 'pending',
+                method: method,
+                receipt_url: publicUrl,
+                description: `Deposit via ${method === 'bank' ? 'Bank Transfer' : 'USDT'}`
+            });
+
+            if (txError) throw txError;
+
+            showToast('Deposit submitted! Admin will verify your receipt shortly.');
             setAmount('');
+            setReceiptFile(null);
+        } catch (error: any) {
+            console.error(error);
+            showToast(error.message || 'Error processing request', 'error');
+        } finally {
+            setLoading(false);
+            setUploading(false);
         }
-        setLoading(false);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -179,8 +212,8 @@ const FundWallet = () => {
                                 <PaymentMethodCard
                                     active={method === 'crypto'}
                                     onClick={() => setMethod('crypto')}
-                                    icon={Bitcoin}
-                                    label="Crypto"
+                                    icon={Coins}
+                                    label="USDT"
                                 />
                                 <PaymentMethodCard
                                     active={method === 'bank'}
@@ -190,31 +223,33 @@ const FundWallet = () => {
                                 />
                                 <PaymentMethodCard
                                     active={method === 'card'}
-                                    onClick={() => setMethod('card')}
+                                    onClick={() => { }}
                                     icon={CreditCard}
                                     label="Credit Card"
+                                    disabled={true}
                                 />
                             </div>
                         </div>
+
 
                         {/* Payment Details (Dynamic) */}
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                             {method === 'crypto' && (
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                                            <Bitcoin size={20} />
+                                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                            <Coins size={20} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-slate-900">Pay with Bitcoin</h4>
-                                            <p className="text-sm text-slate-500">Send BTC to the address below</p>
+                                            <h4 className="font-bold text-slate-900">Pay with USDT (Tether)</h4>
+                                            <p className="text-sm text-slate-500">Send USDT to the address below (TRC20/ERC20)</p>
                                         </div>
                                     </div>
 
                                     <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between group">
-                                        <code className="text-slate-600 font-mono text-sm break-all">{appSettings.btc_address}</code>
+                                        <code className="text-slate-600 font-mono text-sm break-all">{appSettings.usdt_address}</code>
                                         <button
-                                            onClick={() => handleCopy(appSettings.btc_address)}
+                                            onClick={() => handleCopy(appSettings.usdt_address)}
                                             className="p-2 text-slate-400 hover:text-brand-600 transition"
                                         >
                                             {copied ? <CheckCircle2 size={20} className="text-emerald-500" /> : <Copy size={20} />}
@@ -280,6 +315,47 @@ const FundWallet = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Receipt Upload (Shown for Bank/USDT) */}
+                            {(method === 'bank' || method === 'crypto') && (
+                                <div className="mt-8 pt-8 border-t border-slate-100">
+                                    <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                        <Upload size={18} className="text-brand-600" />
+                                        Upload Proof of Payment
+                                    </h4>
+
+                                    <div className="relative group">
+                                        <input
+                                            type="file"
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                            onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                                            accept="image/*,.pdf"
+                                        />
+                                        <div className={`p-8 border-2 border-dashed rounded-2xl text-center transition ${receiptFile ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 group-hover:border-brand-300'}`}>
+                                            {receiptFile ? (
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <FileText size={40} className="text-emerald-500" />
+                                                    <p className="font-bold text-emerald-700">{receiptFile.name}</p>
+                                                    <p className="text-xs text-emerald-600">Click or drag to replace</p>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-2 text-slate-400">
+                                                    <Upload size={40} />
+                                                    <p className="font-medium text-slate-600">Select transfer receipt</p>
+                                                    <p className="text-xs">Supports PNG, JPG, or PDF</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {uploading && (
+                                        <div className="mt-4 flex items-center justify-center gap-2 text-brand-600 text-sm font-bold">
+                                            <div className="w-4 h-4 border-2 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
+                                            Uploading receipt...
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -336,11 +412,16 @@ const FundWallet = () => {
     );
 };
 
-const PaymentMethodCard = ({ active, onClick, icon: Icon, label }: any) => (
+const PaymentMethodCard = ({ active, onClick, icon: Icon, label, disabled }: any) => (
     <div
-        onClick={onClick}
-        className={`p-4 rounded-xl border-2 cursor-pointer transition flex flex-col items-center gap-3 ${active ? 'border-brand-500 bg-brand-50/50' : 'border-slate-100 hover:border-slate-200'}`}
+        onClick={!disabled ? onClick : undefined}
+        className={`p-4 rounded-xl border-2 transition flex flex-col items-center gap-3 relative overflow-hidden ${disabled ? 'border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed' : (active ? 'border-brand-500 bg-brand-50/50 cursor-pointer' : 'border-slate-100 hover:border-slate-200 cursor-pointer')}`}
     >
+        {disabled && (
+            <div className="absolute top-2 right-[-1.5rem] bg-slate-200 text-slate-600 text-[10px] font-bold py-0.5 px-6 rotate-45 transform">
+                SOON
+            </div>
+        )}
         <Icon size={24} className={active ? 'text-brand-600' : 'text-slate-400'} />
         <span className={`text-sm font-bold ${active ? 'text-brand-700' : 'text-slate-600'}`}>{label}</span>
     </div>
