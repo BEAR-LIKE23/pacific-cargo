@@ -1,5 +1,5 @@
 
-import { Activity, Users, Package, Settings, ShieldAlert, LogOut, Bell } from 'lucide-react';
+import { Activity, Users, Package, Settings, ShieldAlert, LogOut, Bell, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import clsx from 'clsx';
@@ -9,7 +9,8 @@ const AdminSidebar = () => {
 
     const links = [
         { name: 'Overview', path: '/admin/dashboard', icon: Activity },
-        { name: 'User Management', path: '/admin/users', icon: Users }, // Placeholder for now
+        { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
+        { name: 'User Management', path: '/admin/users', icon: Users },
         { name: 'All Shipments', path: '/admin/shipments', icon: Package },
         { name: 'Broadcast Messages', path: '/admin/notifications', icon: Bell },
         { name: 'System Settings', path: '/admin/settings', icon: Settings },

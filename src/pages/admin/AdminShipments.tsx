@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Search, CheckCircle, XCircle, AlertCircle, Edit2, MapPin, Save, X, Plus } from 'lucide-react';
+import { Search, MapPin, CheckCircle, Eye, Download, Loader2, Save, X, Plus, AlertCircle, XCircle } from 'lucide-react';
 import Toast, { ToastType } from '../../components/Toast';
+import WaybillTemplate from '../../components/WaybillTemplate';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 const AdminShipments = () => {
     const [shipments, setShipments] = useState<any[]>([]);
@@ -16,6 +19,11 @@ const AdminShipments = () => {
     const [editingShipment, setEditingShipment] = useState<any>(null);
     const [editForm, setEditForm] = useState({ status: '', current_location: '' });
     const [updating, setUpdating] = useState(false);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
+    const [selectedShipment, setSelectedShipment] = useState<any>(null);
+    const waybillRef = useRef<HTMLDivElement>(null);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         let subscription: any;
@@ -135,8 +143,47 @@ const AdminShipments = () => {
             (shipment.receiver_name && shipment.receiver_name.toLowerCase().includes(searchTerm.toLowerCase()));
     });
 
+    const handleDownloadWaybill = async (shipment: any) => {
+        setDownloadingId(shipment.id);
+        setSelectedShipment(shipment);
+
+        setTimeout(async () => {
+            try {
+                if (!waybillRef.current) throw new Error('Template ref not found');
+
+                const canvas = await (html2canvas as any)(waybillRef.current, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save(`WAYBILL-${shipment.tracking_code}.pdf`);
+                showToast('Waybill downloaded successfully!');
+            } catch (error) {
+                console.error('PDF Generation Error:', error);
+                showToast('Failed to generate PDF.', 'error');
+            } finally {
+                setDownloadingId(null);
+                setSelectedShipment(null);
+            }
+        }, 500);
+    };
+
     return (
         <AdminLayout>
+            <div className="fixed -left-[1000vw] -top-[1000vh]">
+                {selectedShipment && (
+                    <WaybillTemplate ref={waybillRef} shipment={selectedShipment} />
+                )}
+            </div>
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <div className="flex justify-between items-center mb-8">
                 <div>
@@ -148,7 +195,6 @@ const AdminShipments = () => {
                 </Link>
             </div>
 
-            {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -167,7 +213,6 @@ const AdminShipments = () => {
                 </div>
             </div>
 
-            {/* Table */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">
@@ -214,7 +259,7 @@ const AdminShipments = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
+                                            <div className="flex items-center justify-end gap-2">
                                                 {shipment.payment_status === 'Pending Confirmation' && (
                                                     <>
                                                         <button
@@ -234,11 +279,30 @@ const AdminShipments = () => {
                                                     </>
                                                 )}
                                                 <button
+                                                    onClick={() => navigate(`/track?code=${shipment.tracking_code}`)}
+                                                    className="p-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+                                                    title="Quick Track"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDownloadWaybill(shipment)}
+                                                    disabled={downloadingId === shipment.id}
+                                                    className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50"
+                                                    title="Download Waybill"
+                                                >
+                                                    {downloadingId === shipment.id ? (
+                                                        <Loader2 size={18} className="animate-spin" />
+                                                    ) : (
+                                                        <Download size={18} />
+                                                    )}
+                                                </button>
+                                                <button
                                                     onClick={() => openEditModal(shipment)}
-                                                    className="bg-slate-100 text-slate-600 p-2 rounded hover:bg-brand-50 hover:text-brand-600 transition"
+                                                    className="p-2 text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition rounded-lg"
                                                     title="Edit Shipment"
                                                 >
-                                                    <Edit2 size={16} />
+                                                    <Save size={18} />
                                                 </button>
                                             </div>
                                         </td>
@@ -250,7 +314,6 @@ const AdminShipments = () => {
                 </div>
             </div>
 
-            {/* Edit Modal */}
             {editingShipment && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200">

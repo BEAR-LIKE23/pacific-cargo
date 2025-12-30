@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Package, PlusCircle, Wallet, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, PlusCircle, Wallet, LogOut, MapPin, RefreshCcw } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import clsx from 'clsx';
@@ -9,9 +9,11 @@ const UserSidebar = () => {
 
     const links = [
         { name: 'My Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { name: 'My Shipments', path: '/dashboard/shipments', icon: Package }, // Can alias to dashboard for now
+        { name: 'My Shipments', path: '/dashboard/shipments', icon: Package },
         { name: 'Create Shipment', path: '/dashboard/create-shipment', icon: PlusCircle },
-        { name: 'My Wallet', path: '/dashboard/wallet', icon: Wallet }, // Placeholder
+        { name: 'Address Book', path: '/dashboard/addresses', icon: MapPin },
+        { name: 'Financial Ledger', path: '/dashboard/transactions', icon: RefreshCcw },
+        { name: 'Fund Wallet', path: '/dashboard/wallet', icon: Wallet },
     ];
 
     return (

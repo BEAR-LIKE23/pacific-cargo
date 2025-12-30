@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import PublicLayout from '../layouts/PublicLayout';
-import { Search, MapPin, Package, Clock, Download, LayoutDashboard, Truck, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Package, Clock, Download, LayoutDashboard, Truck, ArrowRight, CheckCircle } from 'lucide-react';
+import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import Toast, { ToastType } from '../components/Toast';
@@ -41,12 +43,10 @@ const TrackPage = () => {
             setUser(user);
         });
 
-        // Handle direct tracking from URL
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
         if (code) {
             setTrackingId(code);
-            // Small delay to allow scan animation to breathe
             setLoading(true);
             setScanAnimation(true);
             setTimeout(() => fetchShipmentData(code), 1000);
@@ -61,8 +61,6 @@ const TrackPage = () => {
         setScanAnimation(true);
         setResult(null);
         setCoords(null);
-
-        // Simulate scanning delay for effect
         setTimeout(() => fetchShipmentData(), 1500);
     };
 
@@ -84,7 +82,6 @@ const TrackPage = () => {
                 return;
             }
 
-            // Fetch Real Events from database
             const { data: dbEvents } = await supabase
                 .from('shipment_events')
                 .select('*')
@@ -106,7 +103,6 @@ const TrackPage = () => {
                     }
                 ];
 
-            // Geocode
             if (data.current_location) {
                 await geocodeLocation(data.current_location);
             }
@@ -147,19 +143,19 @@ const TrackPage = () => {
 
     const handleDownloadPDF = async () => {
         if (!result) return;
-
         const input = document.getElementById('waybill-content');
         if (!input) return;
 
         try {
-            const canvas = await html2canvas(input, { scale: 2 } as any);
+            setToast({ message: 'Synthesizing PDF Waybill...', type: 'info' });
+            const canvas = await (html2canvas as any)(input, { scale: 2 });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             pdf.save(`Waybill-${result.id}.pdf`);
+            showToast('Waybill downloaded!');
         } catch (err) {
             console.error("PDF generation failed", err);
             showToast("Failed to generate PDF", 'error');
@@ -215,78 +211,156 @@ const TrackPage = () => {
 
                 {result && (
                     <div className="max-w-5xl mx-auto animate-fade-in-up space-y-8">
-                        {/* Status Overview Card */}
                         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-                            <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h2 className="text-4xl font-black text-slate-900 tracking-tight">{result.id}</h2>
-                                        <div className="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded">SECURE</div>
+                            <div className="p-8 border-b border-slate-100 bg-slate-50/50">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                                    <div>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <h2 className="text-4xl font-black text-slate-900 tracking-tight">{result.id}</h2>
+                                            <div className="bg-brand-600 text-white text-[10px] font-black px-2 py-1 rounded tracking-widest uppercase">Certified</div>
+                                        </div>
+                                        <p className="text-slate-500 text-sm font-medium flex items-center gap-2">
+                                            <Package size={14} className="text-brand-500" />
+                                            {result.carrier} • {result.service}
+                                        </p>
                                     </div>
-                                    <p className="text-slate-500 text-sm font-medium">Carrier: {result.carrier}</p>
+                                    <div className="text-left md:text-right">
+                                        <div className={clsx(
+                                            "inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm",
+                                            result.status === 'Delivered' ? 'bg-emerald-500 text-white' :
+                                                result.status === 'In Transit' ? 'bg-brand-600 text-white' :
+                                                    'bg-slate-900 text-white'
+                                        )}>
+                                            <Truck size={16} />
+                                            {result.status}
+                                        </div>
+                                        <p className="text-slate-400 text-[10px] mt-2 font-black uppercase tracking-widest">Est. Delivery: {result.eta}</p>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm shadow-sm ${result.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
-                                        result.status === 'In Transit' ? 'bg-blue-100 text-blue-700' :
-                                            'bg-yellow-100 text-yellow-700'
-                                        }`}>
-                                        <Truck size={18} />
-                                        {result.status}
+
+                                <div className="relative pt-4 pb-8">
+                                    <div className="flex justify-between relative z-10">
+                                        {[
+                                            { label: 'Booking', status: 'Pending', icon: Package },
+                                            { label: 'In Transit', status: 'In Transit', icon: Truck },
+                                            { label: 'Out for Delivery', status: 'Out for Delivery', icon: MapPin },
+                                            { label: 'Delivered', status: 'Delivered', icon: CheckCircle }
+                                        ].map((step, idx, arr) => {
+                                            const stepOrder = ['Pending', 'In Transit', 'Out for Delivery', 'Delivered'];
+                                            const currentIdx = stepOrder.indexOf(result.status);
+                                            const isPast = idx <= (currentIdx === -1 ? 0 : currentIdx);
+                                            const isCurrent = idx === currentIdx;
+
+                                            return (
+                                                <div key={idx} className="flex flex-col items-center flex-1 group">
+                                                    <div className={clsx(
+                                                        "w-10 h-10 rounded-full flex items-center justify-center border-4 transition-all duration-500",
+                                                        isPast ? "bg-brand-600 border-brand-100 text-white" : "bg-white border-slate-100 text-slate-300"
+                                                    )}>
+                                                        <step.icon size={18} className={isCurrent ? "animate-bounce" : ""} />
+                                                    </div>
+                                                    <div className="mt-3 text-center">
+                                                        <p className={clsx(
+                                                            "text-[10px] font-black uppercase tracking-widest leading-none",
+                                                            isPast ? "text-slate-900" : "text-slate-400"
+                                                        )}>{step.label}</p>
+                                                    </div>
+                                                    {idx < arr.length - 1 && (
+                                                        <div className="absolute top-5 left-[calc(50%+20px)] w-[calc(100%-40px)] h-1 -z-10 bg-slate-100">
+                                                            <div
+                                                                className="h-full bg-brand-600 transition-all duration-1000"
+                                                                style={{ width: isPast && idx < currentIdx ? '100%' : '0%' }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                    <p className="text-slate-400 text-xs mt-2 font-mono">EST: {result.eta}</p>
                                 </div>
                             </div>
 
-                            {/* Map Section */}
                             <div className="h-[400px] w-full bg-slate-100 relative z-0">
                                 {coords ? (
-                                    <MapContainer center={coords} zoom={5} scrollWheelZoom={false} className="h-full w-full z-0">
+                                    <MapContainer center={coords} zoom={5} scrollWheelZoom={false} className="h-full w-full z-0 border-t border-slate-100">
                                         <TileLayer
                                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                         />
                                         <Marker position={coords}>
-                                            <Popup>
-                                                <b>Current Location</b><br /> {result.current_location}
+                                            <Popup className="custom-popup">
+                                                <div className="p-1">
+                                                    <p className="font-bold text-slate-900 mb-1">Current Cargo Status</p>
+                                                    <p className="text-xs text-slate-500">{result.current_location}</p>
+                                                </div>
                                             </Popup>
                                         </Marker>
                                         <RecenterMap coords={coords} />
                                     </MapContainer>
                                 ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                                        <MapPin size={48} className="mb-4 opacity-50" />
-                                        <p>Map location unavailable for this status.</p>
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 bg-white">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-brand-500 rounded-full blur-2xl opacity-10 animate-pulse"></div>
+                                            <MapPin size={64} className="mb-4 opacity-20 relative z-10" />
+                                        </div>
+                                        <p className="font-bold text-slate-300 tracking-tight">Real-time coordinates pending update</p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Details Grid */}
                         <div className="grid md:grid-cols-3 gap-8">
-                            {/* Left: Journey Info */}
-                            <div className="md:col-span-2 bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
-                                <h3 className="font-bold text-slate-900 mb-6 text-lg flex items-center gap-2">
-                                    <Clock className="text-teal-500" /> Journey History
-                                </h3>
-                                <div className="space-y-8 relative border-l-2 border-slate-200 pl-8 ml-3">
+                            <div className="md:col-span-2 bg-white rounded-3xl shadow-xl p-10 border border-slate-100">
+                                <div className="flex justify-between items-center mb-10">
+                                    <h3 className="font-extrabold text-slate-900 text-xl tracking-tight flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                            <Clock size={20} />
+                                        </div>
+                                        Detailed Journey
+                                    </h3>
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        Real-time Feed
+                                    </div>
+                                </div>
+
+                                <div className="space-y-10 relative">
+                                    <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-slate-100"></div>
+
                                     {result.events.map((event: any, idx: number) => (
-                                        <div key={idx} className="relative">
-                                            <div className={`absolute -left-[41px] top-1 w-5 h-5 rounded-full border-4 border-white shadow-sm ring-1 ${idx === 0 ? 'bg-teal-500 ring-teal-200' : 'bg-slate-300 ring-slate-200'}`}></div>
-                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                                                <div>
-                                                    <p className={`font-bold text-base ${idx === 0 ? 'text-slate-900' : 'text-slate-500'}`}>{event.status}</p>
-                                                    <p className="text-slate-500 text-sm">{event.location}</p>
+                                        <div key={idx} className="relative pl-12 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                                            <div className={clsx(
+                                                "absolute left-0 top-1 w-10 h-10 rounded-xl flex items-center justify-center border-4 border-white shadow-sm z-10 transition-colors duration-500",
+                                                idx === 0 ? "bg-brand-600 shadow-brand-100" : "bg-slate-100"
+                                            )}>
+                                                {idx === 0 ? <Package size={16} className="text-white" /> : <div className="w-2 h-2 rounded-full bg-slate-400" />}
+                                            </div>
+
+                                            <div className="flex-1">
+                                                <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
+                                                    <p className={clsx(
+                                                        "font-black text-lg tracking-tight",
+                                                        idx === 0 ? "text-slate-900" : "text-slate-500"
+                                                    )}>{event.status}</p>
+                                                    <div className="text-[10px] font-black text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 self-start">
+                                                        {event.date} • {event.time}
+                                                    </div>
                                                 </div>
-                                                <div className="text-xs font-mono text-slate-400 bg-slate-50 px-2 py-1 rounded self-start">
-                                                    {event.date} • {event.time}
-                                                </div>
+                                                <p className="text-slate-500 text-sm font-medium mt-1 flex items-center gap-2">
+                                                    <MapPin size={14} className="text-slate-300" />
+                                                    {event.location}
+                                                </p>
+                                                {event.description && (
+                                                    <p className="mt-3 text-sm text-slate-400 leading-relaxed bg-slate-50/50 p-3 rounded-xl border border-slate-50 italic">
+                                                        "{event.description}"
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Right: Package Specs */}
                             <div className="bg-white rounded-3xl shadow-xl p-8 border border-slate-100 h-fit">
                                 <h3 className="font-bold text-slate-900 mb-6 text-lg flex items-center gap-2">
                                     <Package className="text-brand-500" /> Package Specs
@@ -309,7 +383,6 @@ const TrackPage = () => {
                             </div>
                         </div>
 
-                        {/* Hidden Waybill for PDF Generation */}
                         <div className="absolute top-0 left-[-9999px] w-[210mm] bg-white p-[20mm] text-slate-900" id="waybill-content">
                             <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-slate-100">
                                 <div>

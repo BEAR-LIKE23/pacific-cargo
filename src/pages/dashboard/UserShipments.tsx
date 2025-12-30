@@ -1,13 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import UserLayout from '../../layouts/UserLayout';
-import { Search, Eye } from 'lucide-react';
+import { Search, Eye, Download, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import WaybillTemplate from '../../components/WaybillTemplate';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import Toast, { ToastType } from '../../components/Toast';
 
 const UserShipments = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
     const [shipments, setShipments] = useState<any[]>([]);
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+    const waybillRef = useRef<HTMLDivElement>(null);
+    const [selectedShipment, setSelectedShipment] = useState<any>(null);
 
     useEffect(() => {
         const fetchShipments = async () => {
@@ -35,8 +43,51 @@ const UserShipments = () => {
         fetchShipments();
     }, [navigate]);
 
+    const handleDownloadWaybill = async (shipment: any) => {
+        setDownloadingId(shipment.id);
+        setSelectedShipment(shipment);
+
+        // Give React time to render the hidden template
+        setTimeout(async () => {
+            try {
+                if (!waybillRef.current) throw new Error('Template ref not found');
+
+                const canvas = await (html2canvas as any)(waybillRef.current, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save(`WAYBILL-${shipment.tracking_code}.pdf`);
+                setToast({ message: 'Waybill downloaded successfully!', type: 'success' });
+            } catch (error) {
+                console.error('PDF Generation Error:', error);
+                setToast({ message: 'Failed to generate PDF. Please try again.', type: 'error' });
+            } finally {
+                setDownloadingId(null);
+                setSelectedShipment(null);
+            }
+        }, 500);
+    };
+
     return (
         <UserLayout>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+            {/* Hidden Template for PDF Capture */}
+            <div className="fixed -left-[1000vw] -top-[1000vh]">
+                {selectedShipment && (
+                    <WaybillTemplate ref={waybillRef} shipment={selectedShipment} />
+                )}
+            </div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">My Shipments</h1>
@@ -83,8 +134,8 @@ const UserShipments = () => {
                                         <td className="px-8 py-5 text-sm font-bold text-slate-900">{item.tracking_code}</td>
                                         <td className="px-8 py-5">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold border ${item.status === 'In Transit' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                    item.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                        'bg-amber-50 text-amber-600 border-amber-100'
+                                                item.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                    'bg-amber-50 text-amber-600 border-amber-100'
                                                 }`}>
                                                 {item.status}
                                             </span>
@@ -93,12 +144,28 @@ const UserShipments = () => {
                                         <td className="px-8 py-5 text-sm font-bold text-slate-700">₦{item.cost?.toLocaleString() || '0.00'}</td>
                                         <td className="px-8 py-5 text-sm text-slate-500">{new Date(item.created_at).toLocaleDateString()}</td>
                                         <td className="px-8 py-5 text-right">
-                                            <button
-                                                onClick={() => navigate(`/track?code=${item.tracking_code}`)}
-                                                className="text-brand-600 hover:text-brand-700 font-medium text-sm flex items-center justify-end gap-1 ml-auto"
-                                            >
-                                                <Eye size={16} /> Track
-                                            </button>
+                                            <div className="flex items-center justify-end gap-3">
+                                                <button
+                                                    onClick={() => navigate(`/track?code=${item.tracking_code}`)}
+                                                    className="text-brand-600 hover:text-brand-700 font-medium text-sm flex items-center gap-1 transition-colors"
+                                                    title="Track Shipment"
+                                                >
+                                                    <Eye size={16} /> Track
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDownloadWaybill(item)}
+                                                    disabled={downloadingId === item.id}
+                                                    className="text-slate-600 hover:text-slate-900 font-medium text-sm flex items-center gap-1 disabled:opacity-50 transition-colors"
+                                                    title="Download Waybill"
+                                                >
+                                                    {downloadingId === item.id ? (
+                                                        <Loader2 size={16} className="animate-spin" />
+                                                    ) : (
+                                                        <Download size={16} />
+                                                    )}
+                                                    Waybill
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

@@ -1,19 +1,12 @@
 
+// Pacific Cargo App Routing
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import UserDashboard from './pages/dashboard/UserDashboard';
-import UserShipments from './pages/dashboard/UserShipments';
-import CreateShipment from './pages/dashboard/CreateShipment';
-import FundWallet from './pages/dashboard/FundWallet';
+import { UserDashboard, UserShipments, CreateShipment, SavedAddresses, Transactions, FundWallet } from './pages/dashboard';
 import Login from './pages/auth/Login';
 import TrackPage from './pages/Track';
 import Register from './pages/auth/Register';
 import EmailConfirmation from './pages/auth/EmailConfirmation';
-import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
-import AdminSettings from './pages/admin/AdminSettings';
-import AdminShipments from './pages/admin/AdminShipments';
-import AdminCreateShipment from './pages/admin/AdminCreateShipment';
-import AdminNotifications from './pages/admin/AdminNotifications';
-import AdminUsers from './pages/admin/AdminUsers';
+import { SuperAdminDashboard, AdminSettings, AdminShipments, AdminCreateShipment, AdminNotifications, Analytics, AdminUsers } from './pages/admin';
 import Home from './pages/Home';
 import Services from './pages/Services';
 import About from './pages/About';
@@ -39,6 +32,8 @@ function App() {
                 <Route path="/dashboard" element={<UserDashboard />} />
                 <Route path="/dashboard/shipments" element={<UserShipments />} />
                 <Route path="/dashboard/create-shipment" element={<CreateShipment />} />
+                <Route path="/dashboard/addresses" element={<SavedAddresses />} />
+                <Route path="/dashboard/transactions" element={<Transactions />} />
                 <Route path="/dashboard/wallet" element={<FundWallet />} />
 
                 {/* Super Admin Routes */}
@@ -48,6 +43,7 @@ function App() {
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/create-shipment" element={<AdminCreateShipment />} />
                 <Route path="/admin/shipments" element={<AdminShipments />} />
+                <Route path="/admin/analytics" element={<Analytics />} />
                 <Route path="/admin/notifications" element={<AdminNotifications />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
             </Routes>
