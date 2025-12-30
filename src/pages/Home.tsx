@@ -106,7 +106,7 @@ const Home = () => {
                         <div className="relative">
                             <div className="absolute inset-0 bg-brand-600 rounded-2xl transform rotate-3 opacity-10"></div>
                             <img
-                                src="https://images.unsplash.com/photo-1566576912902-199bd66f8d40?q=80&w=2070&auto=format&fit=crop"
+                                src="/logistics-worker.png"
                                 alt="Logistics Worker"
                                 className="relative rounded-2xl shadow-xl z-10"
                             />
