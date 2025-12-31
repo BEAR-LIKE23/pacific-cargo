@@ -144,7 +144,7 @@ const Login = () => {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
-                                        placeholder="admin@pacificcargo.com"
+                                        placeholder="you@example.com"
                                         required
                                     />
                                 </div>
