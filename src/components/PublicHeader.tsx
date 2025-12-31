@@ -68,19 +68,26 @@ const PublicHeader = () => {
             {/* Mobile Menu */}
             {isOpen && (
                 <div className="md:hidden bg-white border-t border-slate-100 p-4 space-y-4 shadow-lg">
-                    <Link to="/" className="block text-slate-600 font-medium">Home</Link>
-                    <Link to="/track" className="block text-slate-600 font-medium">Track Shipment</Link>
-                    <Link to="/services" className="block text-slate-600 font-medium">Services</Link>
-                    <Link to="/contact" className="block text-slate-600 font-medium">Contact</Link>
+                    <Link to="/" onClick={() => setIsOpen(false)} className="block text-slate-700 font-semibold p-2 hover:bg-slate-50 rounded-lg">Home</Link>
+                    <Link to="/track" onClick={() => setIsOpen(false)} className="block text-slate-700 font-semibold p-2 hover:bg-slate-50 rounded-lg">Track Shipment</Link>
+                    <Link to="/services" onClick={() => setIsOpen(false)} className="block text-slate-700 font-semibold p-2 hover:bg-slate-50 rounded-lg">Services</Link>
+                    <Link to="/contact" onClick={() => setIsOpen(false)} className="block text-slate-700 font-semibold p-2 hover:bg-slate-50 rounded-lg">Contact</Link>
                     {user ? (
                         <>
-                            <Link to="/dashboard" className="block text-brand-600 font-bold">User Dashboard</Link>
-                            <button onClick={handleLogout} className="block text-red-600 font-medium">Sign Out</button>
+                            <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block text-brand-600 font-bold p-2 bg-brand-50 rounded-lg">User Dashboard</Link>
+                            <button
+                                onClick={() => {
+                                    handleLogout();
+                                    setIsOpen(false);
+                                }}
+                                className="block w-full text-left text-red-600 font-medium p-2"
+                            >
+                                Sign Out
+                            </button>
                         </>
                     ) : (
                         <>
-                            <Link to="/login" className="block text-slate-600 font-medium">User Login</Link>
-                            <Link to="/admin/login" className="block text-slate-500 text-sm font-medium">Admin Portal</Link>
+                            <Link to="/login" onClick={() => setIsOpen(false)} className="block text-brand-600 font-bold p-2 bg-brand-50 rounded-lg">User Login</Link>
                         </>
                     )}
                 </div>

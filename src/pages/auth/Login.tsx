@@ -12,6 +12,8 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [resetMode, setResetMode] = useState(false);
+    const [success, setSuccess] = useState('');
     const isAdmin = location.pathname.includes('admin');
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -53,6 +55,25 @@ const Login = () => {
         }
     };
 
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/login`,
+            });
+            if (resetError) throw resetError;
+            setSuccess('Password reset link sent to your email!');
+        } catch (err: any) {
+            setError(err.message || 'Error sending reset link.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
             <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -62,7 +83,9 @@ const Login = () => {
                 </div>
 
                 <div className="p-8">
-                    <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">{isAdmin ? 'Admin Portal' : 'Sign In'}</h2>
+                    <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">
+                        {resetMode ? 'Reset Password' : (isAdmin ? 'Admin Portal' : 'Sign In')}
+                    </h2>
 
                     {error && (
                         <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm font-medium">
@@ -70,46 +93,97 @@ const Login = () => {
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-3 text-slate-400" size={20} />
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
-                                    placeholder="admin@pacificcargo.com"
-                                    required
-                                />
-                            </div>
+                    {success && (
+                        <div className="bg-emerald-50 text-emerald-600 p-3 rounded-lg mb-4 text-sm font-medium">
+                            {success}
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-3 text-slate-400" size={20} />
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
-                                    placeholder="••••••••"
-                                    required
-                                />
-                            </div>
-                        </div>
+                    )}
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 mt-4"
-                        >
-                            {loading ? 'Signing in...' : (
-                                <>Sign In <ArrowRight size={18} /></>
-                            )}
-                        </button>
-                    </form>
+                    {resetMode ? (
+                        <form onSubmit={handleResetPassword} className="space-y-4">
+                            <p className="text-sm text-slate-500 mb-4">Enter your email address and we'll send you a link to reset your password.</p>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-3 text-slate-400" size={20} />
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
+                                        placeholder="your@email.com"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 mt-4"
+                            >
+                                {loading ? 'Sending...' : 'Send Reset Link'}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setResetMode(false)}
+                                className="w-full text-slate-500 text-sm font-medium hover:text-slate-700 transition"
+                            >
+                                Back to Login
+                            </button>
+                        </form>
+                    ) : (
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-3 text-slate-400" size={20} />
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
+                                        placeholder="admin@pacificcargo.com"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-3 text-slate-400" size={20} />
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex items-center justify-end mt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setResetMode(true)}
+                                        className="text-sm font-medium text-brand-600 hover:text-brand-500 transition"
+                                    >
+                                        Forgot password?
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 mt-4"
+                            >
+                                {loading ? 'Signing in...' : (
+                                    <>Sign In <ArrowRight size={18} /></>
+                                )}
+                            </button>
+                        </form>
+                    )}
                 </div>
             </div>
         </div>
