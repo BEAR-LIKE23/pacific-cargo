@@ -103,8 +103,14 @@ const TrackPage = () => {
                     }
                 ];
 
-            if (data.current_location) {
-                await geocodeLocation(data.current_location);
+            // Determine location to plot
+            let locationToPlot = data.current_location;
+            if (data.status === 'Delivered') {
+                locationToPlot = data.destination;
+            }
+
+            if (locationToPlot) {
+                await geocodeLocation(locationToPlot);
             }
 
             setResult({
