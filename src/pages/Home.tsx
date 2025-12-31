@@ -15,21 +15,20 @@ const Home = () => {
                 <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 flex flex-col items-center text-center">
-                    <div className="mb-8 flex flex-col items-center">
-                        <img src="/logo.png" alt="Pacific Cargo" className="h-24 w-auto mb-6 animate-pulse-slow" />
+                    <div className="mb-8 flex flex-col items-center animate-fade-in-up">
                         <span className="inline-block py-1 px-3 rounded-full bg-brand-500/20 border border-brand-500/30 text-brand-300 text-sm font-semibold backdrop-blur-sm">
                             Next-Gen Logistics Solutions
                         </span>
                     </div>
-                    <h1 className="text-4xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight">
+                    <h1 className="text-4xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight animate-slide-up-delay">
                         Global Shipping, <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-teal-400">Redefined.</span>
                     </h1>
-                    <p className="text-xl text-slate-300 max-w-2xl mb-10 leading-relaxed">
+                    <p className="text-xl text-slate-300 max-w-2xl mb-10 leading-relaxed animate-fade-in-delay">
                         Experience seamless, secure, and lightning-fast cargo delivery to over 200 countries worldwide. Track your shipment in real-time.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center animate-fade-in-delay" style={{ animationDelay: '0.8s' }}>
                         <Link to="/track" className="group bg-brand-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-brand-500 transition shadow-lg shadow-brand-900/50 flex items-center justify-center gap-2">
                             Track Your Shipment
                             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
