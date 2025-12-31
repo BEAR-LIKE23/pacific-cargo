@@ -131,10 +131,24 @@ const TrackPage = () => {
 
     const geocodeLocation = async (locationName: string) => {
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName)}`);
-            const data = await response.json();
+            // Attempt 1: Full location string
+            let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName)}`);
+            let data = await response.json();
+
+            // Attempt 2: If failed, and has comma, try first part (City)
+            if ((!data || data.length === 0) && locationName.includes(',')) {
+                const cityOnly = locationName.split(',')[0].trim();
+                console.log(`Geocoding retry with city: ${cityOnly}`);
+                response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityOnly)}`);
+                data = await response.json();
+            }
+
             if (data && data.length > 0) {
                 setCoords([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+            } else {
+                // Final Fallback: if still nothing, try Origin? 
+                // For now, let's just log it.
+                console.warn("Geocoding failed for all attempts");
             }
         } catch (err) {
             console.error("Geocoding failed", err);
