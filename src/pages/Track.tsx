@@ -109,8 +109,15 @@ const TrackPage = () => {
                 locationToPlot = data.destination;
             }
 
+            let success = false;
             if (locationToPlot) {
-                await geocodeLocation(locationToPlot);
+                success = await geocodeLocation(locationToPlot);
+            }
+
+            // Fallback: If no coords found yet (invalid address or empty current_location), show Origin
+            if (!success && data.origin) {
+                console.log("Primary location failed, falling back to Origin");
+                await geocodeLocation(data.origin);
             }
 
             setResult({
@@ -135,7 +142,7 @@ const TrackPage = () => {
         }
     };
 
-    const geocodeLocation = async (locationName: string) => {
+    const geocodeLocation = async (locationName: string): Promise<boolean> => {
         try {
             // Attempt 1: Full location string
             let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationName)}`);
@@ -151,13 +158,12 @@ const TrackPage = () => {
 
             if (data && data.length > 0) {
                 setCoords([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
-            } else {
-                // Final Fallback: if still nothing, try Origin? 
-                // For now, let's just log it.
-                console.warn("Geocoding failed for all attempts");
+                return true;
             }
+            return false;
         } catch (err) {
             console.error("Geocoding failed", err);
+            return false;
         }
     };
 
