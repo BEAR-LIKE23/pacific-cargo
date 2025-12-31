@@ -46,7 +46,7 @@ const AdminSidebar = () => {
                 <button
                     onClick={async () => {
                         await supabase.auth.signOut();
-                        window.location.href = '/admin/login';
+                        window.location.href = '/';
                     }}
                     className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-white transition"
                 >
