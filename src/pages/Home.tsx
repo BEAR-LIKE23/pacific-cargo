@@ -109,13 +109,13 @@ const Home = () => {
                 {HERO_IMAGES.map((img, index) => (
                     <div
                         key={index}
-                        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-40' : 'opacity-0'}`}
+                        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-60' : 'opacity-0'}`}
                         style={{ backgroundImage: `url('${img}')` }}
                     ></div>
                 ))}
 
                 {/* Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-slate-900/40 z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/70 to-slate-900/30 z-10"></div>
 
                 {/* Parallax Floating Elements */}
                 <div
@@ -139,8 +139,8 @@ const Home = () => {
                                 <div
                                     key={index}
                                     className={`absolute transition-all duration-700 ease-in-out transform ${index === currentTextIndex
-                                            ? 'translate-y-0 opacity-100'
-                                            : 'translate-y-8 opacity-0'
+                                        ? 'translate-y-0 opacity-100'
+                                        : 'translate-y-8 opacity-0'
                                         }`}
                                 >
                                     <h1 className="text-4xl md:text-7xl font-extrabold text-white tracking-tight leading-tight">
@@ -163,12 +163,12 @@ const Home = () => {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                            <Link to="/track" className="group bg-brand-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-brand-500 transition shadow-lg shadow-brand-900/50 flex items-center justify-center gap-2">
-                                Track Shipment
+                            <Link to="/login" className="group bg-brand-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-brand-500 transition shadow-lg shadow-brand-900/50 flex items-center justify-center gap-2">
+                                Login to Dashboard
                                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                             </Link>
-                            <Link to="/contact" className="px-8 py-4 rounded-full font-bold text-lg text-white border border-slate-600 hover:bg-white/10 transition backdrop-blur-sm flex items-center justify-center">
-                                Get a Quote
+                            <Link to="/register" className="px-8 py-4 rounded-full font-bold text-lg text-white border border-slate-400 hover:bg-white/10 transition backdrop-blur-sm flex items-center justify-center">
+                                Create Account
                             </Link>
                         </div>
                     </div>
