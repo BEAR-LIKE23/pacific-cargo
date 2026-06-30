@@ -69,16 +69,25 @@ const SuperAdminDashboard = () => {
         if (!confirm('Are you sure you want to approve this deposit?')) return;
 
         try {
-            // Use Secure RPC instead of direct updates
-            const { error: rpcError } = await supabase.rpc('add_wallet_funds', {
-                user_id: userId,
-                amount: amount,
-                reference_id: txId
-            });
+            // 1. Fetch current user balance
+            const { data: userProfile, error: profileErr } = await supabase
+                .from('profiles')
+                .select('balance')
+                .eq('id', userId)
+                .single();
 
-            if (rpcError) throw rpcError;
+            if (profileErr) throw profileErr;
 
-            // Update Transaction Status
+            // 2. Add amount to balance
+            const newBalance = (userProfile.balance || 0) + amount;
+            const { error: updateProfileErr } = await supabase
+                .from('profiles')
+                .update({ balance: newBalance })
+                .eq('id', userId);
+
+            if (updateProfileErr) throw updateProfileErr;
+
+            // 3. Update Transaction Status
             const { error: txError } = await supabase
                 .from('transactions')
                 .update({ status: 'completed' })
@@ -89,9 +98,9 @@ const SuperAdminDashboard = () => {
             showToast('Deposit Approved & Wallet Funded!');
             fetchAdminData(); // Refresh
 
-        } catch (err) {
-            console.error(err);
-            showToast('Failed to approve transaction.', 'error');
+        } catch (err: any) {
+            console.error('Approval Error:', err);
+            showToast(err.message || 'Failed to approve transaction.', 'error');
         }
     };
 
