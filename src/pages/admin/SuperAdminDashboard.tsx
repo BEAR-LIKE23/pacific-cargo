@@ -83,17 +83,21 @@ const SuperAdminDashboard = () => {
             const { error: updateProfileErr } = await supabase
                 .from('profiles')
                 .update({ balance: newBalance })
-                .eq('id', userId);
+                .eq('id', userId)
+                .select()
+                .single();
 
-            if (updateProfileErr) throw updateProfileErr;
+            if (updateProfileErr) throw new Error('Permission denied: Failed to update user balance.');
 
             // 3. Update Transaction Status
             const { error: txError } = await supabase
                 .from('transactions')
                 .update({ status: 'completed' })
-                .eq('id', txId);
+                .eq('id', txId)
+                .select()
+                .single();
 
-            if (txError) throw txError;
+            if (txError) throw new Error('Permission denied: Failed to update transaction status.');
 
             showToast('Deposit Approved & Wallet Funded!');
             fetchAdminData(); // Refresh
