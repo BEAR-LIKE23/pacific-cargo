@@ -21,8 +21,11 @@ const AdminSidebar = () => {
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-brand-600/10 rounded-full blur-[80px] translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
 
             <div className="p-8 border-b border-white/10 relative z-10">
-                <Link to="/" className="inline-block mb-4">
-                    <img src="/logo.png" alt="Pacific Cargo" className="h-10 w-auto object-contain" />
+                <Link to="/" className="inline-flex items-center gap-2 mb-4 group">
+                    <img src="/logo.png" alt="Pacific Cargo" className="h-9 w-auto object-contain bg-white rounded-lg p-1 shadow-sm group-hover:scale-105 transition-transform" />
+                    <span className="text-xl font-black text-white tracking-tighter">
+                        PACIFIC<span className="text-brand-500">CARGO</span>
+                    </span>
                 </Link>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs uppercase tracking-widest backdrop-blur-sm">
                     <ShieldAlert size={14} /> Super Admin

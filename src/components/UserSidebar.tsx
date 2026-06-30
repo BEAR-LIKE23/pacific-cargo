@@ -21,8 +21,11 @@ const UserSidebar = () => {
             <div className="absolute top-0 left-0 w-64 h-64 bg-brand-600/10 rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
             <div className="p-8 border-b border-white/10 relative z-10">
-                <Link to="/" className="inline-block">
-                    <img src="/logo.png" alt="Pacific Cargo" className="h-10 w-auto object-contain" />
+                <Link to="/" className="inline-flex items-center gap-2 group">
+                    <img src="/logo.png" alt="Pacific Cargo" className="h-9 w-auto object-contain bg-white rounded-lg p-1 shadow-sm group-hover:scale-105 transition-transform" />
+                    <span className="text-xl font-black text-white tracking-tighter">
+                        PACIFIC<span className="text-brand-500">CARGO</span>
+                    </span>
                 </Link>
             </div>
 

@@ -29,8 +29,11 @@ const PublicHeader = () => {
         <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-20">
-                    <Link to="/" className="flex items-center gap-3">
-                        <img src="/logo.png" alt="Pacific Cargo" className="h-12 w-auto object-contain" />
+                    <Link to="/" className="flex items-center gap-2">
+                        <img src="/logo.png" alt="Pacific Cargo" className="h-10 w-auto object-contain" />
+                        <span className="text-2xl font-black text-slate-900 tracking-tighter">
+                            PACIFIC<span className="text-brand-600">CARGO</span>
+                        </span>
                     </Link>
 
                     <nav className="hidden md:flex space-x-8">

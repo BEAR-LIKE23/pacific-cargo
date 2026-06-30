@@ -173,3 +173,6 @@ create trigger ensure_balance_security
 before update on public.profiles
 for each row
 execute function public.protect_user_balance();
+
+-- 7. Add receipt_url to transactions
+alter table public.transactions add column if not exists receipt_url text;
