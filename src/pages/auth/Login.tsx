@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Lock, Mail, ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 import { supabase } from '../../lib/supabase';
 
@@ -32,9 +31,6 @@ const Login = () => {
 
             // Ensure role check for admin login
             if (isAdmin) {
-                // Check if user has 'super_admin' role in profiles table
-                // Note: Ideally we set this in metadata or query profiles. 
-                // For now, let's query the profile to be sure.
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('role')
@@ -76,42 +72,82 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-                <div className="bg-brand-600 p-8 text-center">
-                    <h1 className="text-3xl font-bold text-white mb-2">Pacific Cargo</h1>
-                    <p className="text-brand-100">Logistics Management System</p>
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Decorative Orbs */}
+            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-600/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-accent/20 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+
+            <div className="max-w-5xl w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative z-10 border border-slate-100">
+                {/* Image Section */}
+                <div className="md:w-1/2 bg-slate-900 relative hidden md:block">
+                    <img 
+                        src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop" 
+                        alt="Logistics" 
+                        className="absolute inset-0 w-full h-full object-cover opacity-50"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-brand-900/40 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 p-12 w-full">
+                        <Link to="/" className="inline-block mb-6">
+                            <span className="text-2xl font-black text-white tracking-tighter flex items-center gap-2">
+                                <ShieldCheck className="text-brand-400" size={28} />
+                                PACIFIC<span className="text-brand-400">CARGO</span>
+                            </span>
+                        </Link>
+                        <h2 className="text-3xl font-extrabold text-white mb-4 leading-tight">
+                            Your global logistics <br/>control center.
+                        </h2>
+                        <p className="text-slate-300 font-light">
+                            Manage shipments, track cargo in real-time, and streamline your supply chain with our state-of-the-art platform.
+                        </p>
+                    </div>
                 </div>
 
-                <div className="p-8">
-                    <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">
-                        {resetMode ? 'Reset Password' : (isAdmin ? 'Admin Portal' : 'Sign In')}
-                    </h2>
+                {/* Form Section */}
+                <div className="md:w-1/2 p-10 md:p-16 flex flex-col justify-center bg-white relative">
+                    {/* Mobile Logo */}
+                    <div className="md:hidden mb-8 text-center">
+                        <Link to="/" className="inline-block">
+                            <span className="text-2xl font-black text-slate-900 tracking-tighter flex items-center justify-center gap-2">
+                                <ShieldCheck className="text-brand-600" size={28} />
+                                PACIFIC<span className="text-brand-600">CARGO</span>
+                            </span>
+                        </Link>
+                    </div>
+
+                    <div className="mb-10 text-center md:text-left">
+                        <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
+                            {resetMode ? 'Reset Password' : (isAdmin ? 'Admin Portal' : 'Welcome back')}
+                        </h1>
+                        <p className="text-slate-500 font-light">
+                            {resetMode ? 'Enter your email to receive a reset link.' : 'Enter your details to access your account.'}
+                        </p>
+                    </div>
 
                     {error && (
-                        <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm font-medium">
-                            {error}
+                        <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl mb-6 text-sm font-medium flex items-start gap-3">
+                            <div className="mt-0.5">•</div>
+                            <div>{error}</div>
                         </div>
                     )}
 
                     {success && (
-                        <div className="bg-emerald-50 text-emerald-600 p-3 rounded-lg mb-4 text-sm font-medium">
-                            {success}
+                        <div className="bg-brand-50 border border-brand-100 text-brand-600 p-4 rounded-xl mb-6 text-sm font-medium flex items-start gap-3">
+                            <div className="mt-0.5">•</div>
+                            <div>{success}</div>
                         </div>
                     )}
 
                     {resetMode ? (
-                        <form onSubmit={handleResetPassword} className="space-y-4">
-                            <p className="text-sm text-slate-500 mb-4">Enter your email address and we'll send you a link to reset your password.</p>
+                        <form onSubmit={handleResetPassword} className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-3 text-slate-400" size={20} />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:bg-white focus:border-transparent outline-none transition-all text-slate-900 placeholder-slate-400"
                                         placeholder="your@email.com"
                                         required
                                     />
@@ -121,7 +157,7 @@ const Login = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 mt-4"
+                                className="w-full bg-brand-700 text-white py-4 rounded-xl font-bold hover:bg-brand-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-900/20 group"
                             >
                                 {loading ? 'Sending...' : 'Send Reset Link'}
                             </button>
@@ -129,54 +165,54 @@ const Login = () => {
                             <button
                                 type="button"
                                 onClick={() => setResetMode(false)}
-                                className="w-full text-slate-500 text-sm font-medium hover:text-slate-700 transition"
+                                className="w-full text-slate-500 text-sm font-medium hover:text-brand-600 transition-colors mt-2"
                             >
                                 Back to Login
                             </button>
                         </form>
                     ) : (
-                        <form onSubmit={handleLogin} className="space-y-4">
+                        <form onSubmit={handleLogin} className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-3 text-slate-400" size={20} />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:bg-white focus:border-transparent outline-none transition-all text-slate-900 placeholder-slate-400"
                                         placeholder="you@example.com"
                                         required
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-bold text-slate-700">Password</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setResetMode(true)}
+                                        className="text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors"
+                                    >
+                                        Forgot password?
+                                    </button>
+                                </div>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-3 text-slate-400" size={20} />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full pl-10 pr-12 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition"
+                                        className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:bg-white focus:border-transparent outline-none transition-all text-slate-900 placeholder-slate-400"
                                         placeholder="••••••••"
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-600 transition-colors"
                                     >
                                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                    </button>
-                                </div>
-                                <div className="flex items-center justify-end mt-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setResetMode(true)}
-                                        className="text-sm font-medium text-brand-600 hover:text-brand-500 transition"
-                                    >
-                                        Forgot password?
                                     </button>
                                 </div>
                             </div>
@@ -184,13 +220,20 @@ const Login = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 mt-4"
+                                className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10 group mt-8"
                             >
                                 {loading ? 'Signing in...' : (
-                                    <>Sign In <ArrowRight size={18} /></>
+                                    <>Sign In <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
                                 )}
                             </button>
                         </form>
+                    )}
+                    
+                    {!isAdmin && !resetMode && (
+                        <div className="mt-8 text-center text-sm text-slate-500 font-medium">
+                            Don't have an account? {' '}
+                            <Link to="/register" className="text-brand-600 font-bold hover:text-brand-700 hover:underline transition-all">Sign Up</Link>
+                        </div>
                     )}
                 </div>
             </div>

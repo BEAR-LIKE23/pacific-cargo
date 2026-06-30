@@ -203,12 +203,16 @@ const TrackPage = () => {
                         </Link>
                     )}
                     <br />
-                    <span className="text-brand-600 font-bold tracking-wide uppercase text-sm bg-brand-50 px-3 py-1 rounded-full border border-brand-100 mb-4 inline-block">Global Tracking System</span>
-                    <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">Track Your Cargo</h1>
-                    <p className="text-slate-500 text-lg max-w-xl mx-auto">Enter your unique tracking ID to see the real-time location and status of your shipment.</p>
+                    <span className="text-brand-600 font-bold tracking-widest uppercase text-sm bg-brand-50 px-4 py-1.5 rounded-full border border-brand-100 mb-6 inline-block shadow-sm">
+                        // Global Tracking System
+                    </span>
+                    <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight leading-[1.1]">
+                        Track Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent">Cargo</span>
+                    </h1>
+                    <p className="text-slate-600 text-lg max-w-xl mx-auto font-light leading-relaxed">Enter your unique tracking ID to see the real-time location and status of your shipment.</p>
                 </div>
 
-                <form onSubmit={handleTrack} className="max-w-xl mx-auto mb-16 relative z-20">
+                <form onSubmit={handleTrack} className="max-w-xl mx-auto mb-16 relative z-20 animate-fade-in-up">
                     <div className="relative group">
                         <div className={`absolute -inset-1 bg-gradient-to-r from-brand-600 to-teal-400 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200 ${scanAnimation ? 'animate-pulse opacity-75' : ''}`}></div>
                         <div className="relative flex bg-white rounded-xl shadow-xl overflow-hidden">
