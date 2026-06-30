@@ -117,7 +117,7 @@ const UserDashboard = () => {
                     <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">My Dashboard</h1>
                     <p className="text-slate-500 font-medium">Welcome back, <span className="text-slate-900 font-bold">{profile?.full_name || 'User'}</span>. Manage your shipments and wallet here.</p>
                 </div>
-                <div className="flex items-center gap-4 relative">
+                <div className="flex items-center justify-end w-full md:w-auto gap-4 relative">
                     <div className="relative">
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
@@ -130,8 +130,8 @@ const UserDashboard = () => {
                         </button>
 
                         {showNotifications && (
-                            <div className="absolute right-0 mt-4 w-96 bg-white rounded-3xl shadow-2xl shadow-slate-200/50 border border-slate-100 z-50 overflow-hidden animate-fade-in-up">
-                                <div className="p-5 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center backdrop-blur-md">
+                            <div className="absolute right-0 mt-4 w-[90vw] md:w-96 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-900/20 ring-1 ring-slate-900/5 z-50 overflow-hidden animate-fade-in-up">
+                                <div className="p-5 border-b border-slate-100 bg-slate-50/80 flex justify-between items-center">
                                     <h3 className="font-bold text-slate-900">Notifications</h3>
                                     <span className="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1 rounded-full">New Updates</span>
                                 </div>
