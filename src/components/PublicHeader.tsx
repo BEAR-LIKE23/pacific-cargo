@@ -31,7 +31,7 @@ const PublicHeader = () => {
                 <div className="flex justify-between items-center h-20">
                     <Link to="/" className="flex items-center gap-2">
                         <img src="/logo.png" alt="Pacific Cargo" className="h-10 w-auto object-contain" />
-                        <span className="text-2xl font-black text-slate-900 tracking-tighter">
+                        <span className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter">
                             PACIFIC<span className="text-brand-600">CARGO</span>
                         </span>
                     </Link>
@@ -57,10 +57,10 @@ const PublicHeader = () => {
                         ) : (
                             <Link to="/login" className="hidden md:block text-slate-600 font-medium hover:text-slate-900">Login</Link>
                         )}
-                        <Link to="/track" className="bg-brand-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-200">
+                        <Link to="/track" className="hidden sm:block bg-brand-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-200">
                             Track Now
                         </Link>
-                        <button className="md:hidden text-slate-600" onClick={() => setIsOpen(!isOpen)}>
+                        <button className="md:hidden text-slate-600 p-2 -mr-2" onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
                             {isOpen ? <X size={24} /> : <Menu size={24} />}
                         </button>
                     </div>
