@@ -109,7 +109,7 @@ const UserDashboard = () => {
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 animate-fade-in-up">
+            <div className="relative z-50 flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 animate-fade-in-up">
                 <div>
                     <div className="inline-block px-3 py-1 bg-brand-50 border border-brand-100 text-brand-600 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
                         Overview
