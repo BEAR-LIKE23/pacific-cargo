@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PublicLayout from '../layouts/PublicLayout';
 import {
@@ -7,10 +7,7 @@ import {
     Plane,
     Warehouse,
     ShieldCheck,
-    Clock,
-    Globe,
     CheckCircle2,
-    Search,
     Package,
     ArrowUpRight
 } from 'lucide-react';
@@ -26,7 +23,7 @@ const SERVICES = [
         title: "Air Transport",
         description: "Fast and reliable air cargo services for time-sensitive shipments worldwide.",
         icon: Plane,
-        image: "https://images.unsplash.com/photo-1517056636780-692a72061da4?q=80&w=2066&auto=format&fit=crop"
+        image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop"
     },
     {
         title: "Warehousing",
@@ -54,15 +51,6 @@ const FEATURES = [
 const Home = () => {
     const navigate = useNavigate();
     const [trackingNumber, setTrackingNumber] = useState('');
-    const [isScrolled, setIsScrolled] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     const handleTrack = (e: React.FormEvent) => {
         e.preventDefault();
