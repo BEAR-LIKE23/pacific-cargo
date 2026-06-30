@@ -74,7 +74,8 @@ const CreateShipment = () => {
             // 2. Transact securely using RPC
             const { error: payError } = await supabase.rpc('pay_for_shipment', {
                 shipment_cost: 10000,
-                tracking_id: trackingId
+                tracking_id: trackingId,
+                target_user_id: user.id
             });
 
             if (payError) throw payError;
