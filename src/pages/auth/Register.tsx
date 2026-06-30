@@ -143,7 +143,7 @@ const Register = () => {
                 {/* Image Section */}
                 <div className="md:w-1/2 bg-slate-900 relative hidden md:block">
                     <img 
-                        src="https://images.unsplash.com/photo-1566576912321-158fa7592484?q=80&w=2000&auto=format&fit=crop" 
+                        src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=2070&auto=format&fit=crop" 
                         alt="Logistics Fleet" 
                         className="absolute inset-0 w-full h-full object-cover opacity-50"
                     />

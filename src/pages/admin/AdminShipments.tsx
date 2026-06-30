@@ -185,35 +185,38 @@ const AdminShipments = () => {
                 )}
             </div>
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 animate-fade-in-up">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Shipment Management</h1>
-                    <p className="text-slate-500">View and manage all user shipments</p>
+                    <div className="inline-block px-3 py-1 bg-brand-50 border border-brand-100 text-brand-600 rounded-full text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2 w-fit">
+                        <ShieldCheck size={14} /> System Control
+                    </div>
+                    <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Shipment Management</h1>
+                    <p className="text-slate-500 font-medium">View and manage all user shipments.</p>
                 </div>
-                <Link to="/admin/create-shipment" className="bg-brand-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-brand-700 transition">
-                    <Plus size={20} /> New Shipment
+                <Link to="/admin/create-shipment" className="bg-brand-600 text-white px-8 py-4 rounded-2xl hover:bg-brand-700 transition-all font-bold flex items-center gap-2 shadow-xl shadow-brand-900/10 group">
+                    <Plus size={20} className="group-hover:rotate-90 transition-transform" /> New Shipment
                 </Link>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex flex-col md:flex-row gap-4 mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
                         type="text"
                         placeholder="Search Tracking ID or Receiver..."
-                        className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-500"
+                        className="w-full pl-12 pr-4 py-3.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
                     <FilterButton active={filter === 'all'} onClick={() => setFilter('all')} label="All Shipments" />
                     <FilterButton active={filter === 'pending_approval'} onClick={() => setFilter('pending_approval')} label="Pending Approvals" count={shipments.filter(s => s.payment_status === 'Pending Confirmation').length} />
                     <FilterButton active={filter === 'in_transit'} onClick={() => setFilter('in_transit')} label="In Transit" />
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">
                         <thead className="bg-slate-50 border-b border-slate-200 font-bold uppercase text-xs text-slate-500">

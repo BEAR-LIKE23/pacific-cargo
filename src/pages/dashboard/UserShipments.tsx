@@ -88,14 +88,17 @@ const UserShipments = () => {
                     <WaybillTemplate ref={waybillRef} shipment={selectedShipment} />
                 )}
             </div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 animate-fade-in-up">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">My Shipments</h1>
+                    <div className="inline-block px-3 py-1 bg-brand-50 border border-brand-100 text-brand-600 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
+                        Tracking
+                    </div>
+                    <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">My Shipments</h1>
                     <p className="text-slate-500 font-medium">View and track all your shipments.</p>
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                 <div className="p-8 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
                     <h2 className="text-xl font-bold text-slate-900">All Shipments</h2>
                     <div className="relative w-full md:w-auto">
