@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Search, MapPin, CheckCircle, Eye, Download, Loader2, Save, X, Plus, AlertCircle, XCircle } from 'lucide-react';
+import { Search, MapPin, CheckCircle, Eye, Download, Loader2, Save, X, Plus, AlertCircle, XCircle, ShieldCheck } from 'lucide-react';
 import Toast, { ToastType } from '../../components/Toast';
 import WaybillTemplate from '../../components/WaybillTemplate';
 import html2canvas from 'html2canvas';

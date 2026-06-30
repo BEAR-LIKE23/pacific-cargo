@@ -31,7 +31,6 @@ const PublicHeader = () => {
                 <div className="flex justify-between items-center h-20">
                     <Link to="/" className="flex items-center gap-3">
                         <img src="/logo.png" alt="Pacific Cargo" className="h-12 w-auto object-contain" />
-                        <span className="text-2xl font-black text-slate-900 tracking-tighter">PACIFIC<span className="text-brand-600">CARGO</span></span>
                     </Link>
 
                     <nav className="hidden md:flex space-x-8">

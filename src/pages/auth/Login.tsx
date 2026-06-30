@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 import { supabase } from '../../lib/supabase';
 
@@ -88,10 +88,7 @@ const Login = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-brand-900/40 to-transparent"></div>
                     <div className="absolute bottom-0 left-0 p-12 w-full">
                         <Link to="/" className="inline-block mb-6">
-                            <span className="text-2xl font-black text-white tracking-tighter flex items-center gap-2">
-                                <ShieldCheck className="text-brand-400" size={28} />
-                                PACIFIC<span className="text-brand-400">CARGO</span>
-                            </span>
+                            <img src="/logo.png" alt="Pacific Cargo" className="h-12 w-auto object-contain brightness-0 invert" />
                         </Link>
                         <h2 className="text-3xl font-extrabold text-white mb-4 leading-tight">
                             Your global logistics <br/>control center.
@@ -107,10 +104,7 @@ const Login = () => {
                     {/* Mobile Logo */}
                     <div className="md:hidden mb-8 text-center">
                         <Link to="/" className="inline-block">
-                            <span className="text-2xl font-black text-slate-900 tracking-tighter flex items-center justify-center gap-2">
-                                <ShieldCheck className="text-brand-600" size={28} />
-                                PACIFIC<span className="text-brand-600">CARGO</span>
-                            </span>
+                            <img src="/logo.png" alt="Pacific Cargo" className="h-12 w-auto object-contain mx-auto" />
                         </Link>
                     </div>
 

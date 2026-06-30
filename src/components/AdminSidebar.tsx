@@ -1,4 +1,4 @@
-import { Activity, Users, Package, Settings, ShieldAlert, LogOut, Bell, BarChart3, ShieldCheck } from 'lucide-react';
+import { Activity, Users, Package, Settings, ShieldAlert, LogOut, Bell, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import clsx from 'clsx';
@@ -22,10 +22,7 @@ const AdminSidebar = () => {
 
             <div className="p-8 border-b border-white/10 relative z-10">
                 <Link to="/" className="inline-block mb-4">
-                    <span className="text-xl font-black text-white tracking-tighter flex items-center gap-2">
-                        <ShieldCheck className="text-brand-500" size={24} />
-                        PACIFIC<span className="text-brand-500">CARGO</span>
-                    </span>
+                    <img src="/logo.png" alt="Pacific Cargo" className="h-10 w-auto object-contain" />
                 </Link>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs uppercase tracking-widest backdrop-blur-sm">
                     <ShieldAlert size={14} /> Super Admin

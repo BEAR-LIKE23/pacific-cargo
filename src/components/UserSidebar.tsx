@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, PlusCircle, Wallet, LogOut, MapPin, RefreshCcw, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Package, PlusCircle, Wallet, LogOut, MapPin, RefreshCcw } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import clsx from 'clsx';
@@ -22,10 +22,7 @@ const UserSidebar = () => {
 
             <div className="p-8 border-b border-white/10 relative z-10">
                 <Link to="/" className="inline-block">
-                    <span className="text-xl font-black text-white tracking-tighter flex items-center gap-2">
-                        <ShieldCheck className="text-brand-500" size={24} />
-                        PACIFIC<span className="text-brand-500">CARGO</span>
-                    </span>
+                    <img src="/logo.png" alt="Pacific Cargo" className="h-10 w-auto object-contain" />
                 </Link>
             </div>
 

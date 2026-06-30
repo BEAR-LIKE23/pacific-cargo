@@ -259,7 +259,7 @@ const SuperAdminDashboard = () => {
     );
 };
 
-const AdminStat = ({ title, value, icon: Icon, color, gradient, bg, delay }: any) => (
+const AdminStat = ({ title, value, icon: Icon, color, gradient, delay }: any) => (
     <div 
         className={`p-8 rounded-[2rem] shadow-lg border relative overflow-hidden group hover:-translate-y-2 transition-all duration-300 animate-fade-in-up ${gradient ? 'bg-gradient-to-br border-transparent shadow-brand-900/20 ' + gradient : 'bg-white border-slate-100 shadow-slate-200/50'}`}
         style={{ animationDelay: delay }}
