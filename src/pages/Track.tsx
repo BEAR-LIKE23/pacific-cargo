@@ -130,7 +130,14 @@ const TrackPage = () => {
                 weight: data.weight || 'N/A',
                 service: data.shipment_mode || 'Standard',
                 current_location: data.current_location,
-                events: events
+                events: events,
+                sender_name: data.sender_name,
+                sender_contact: data.sender_contact,
+                receiver_name: data.receiver_name,
+                receiver_contact: data.receiver_contact,
+                dispatch_date: data.dispatch_date,
+                estimated_delivery: data.estimated_delivery,
+                package_description: data.package_description
             });
 
         } catch (err) {
@@ -413,67 +420,87 @@ const TrackPage = () => {
                             </div>
                         </div>
 
-                        <div className="absolute top-0 left-[-9999px] w-[210mm] bg-white p-[20mm] text-slate-900" id="waybill-content">
-                            <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-slate-100">
-                                <div>
-                                    <h1 className="text-3xl font-bold text-slate-900 mb-1">Pacific Cargo</h1>
-                                    <p className="text-slate-500 text-sm">Global Logistics & Freight Solutions</p>
+                        <div className="absolute top-0 left-[-9999px] w-[210mm] bg-white p-[20mm] text-slate-900 font-sans" id="waybill-content">
+                            {/* Header */}
+                            <div className="relative mb-12">
+                                <h1 className="text-3xl font-bold mb-2">
+                                    <span className="text-[#FF6600]">FedEx</span> <span className="text-[#4D148C]">Tracking Document</span>
+                                </h1>
+                                <p className="text-[#4D148C] text-lg font-medium mb-4">
+                                    Tracking Number: <span className="font-bold">{result?.id}</span>
+                                </p>
+                                <div className="bg-[#0066CC] text-white px-4 py-1.5 rounded-full text-sm font-bold inline-block">
+                                    {result?.status}
                                 </div>
-                                <div className="text-right">
-                                    <span className="bg-slate-900 text-white px-3 py-1 rounded-full text-xs font-bold mb-2 inline-block">
-                                        {result?.status?.toUpperCase()}
-                                    </span>
-                                    <div className="font-mono text-xl font-bold">{result?.id}</div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-12 mb-12">
-                                <div>
-                                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 border-b border-slate-100 pb-2">Origin</h3>
-                                    <div className="space-y-1">
-                                        <p className="font-bold text-lg">{result?.origin}</p>
-                                        <p className="text-slate-500 text-sm">Sender details on file</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 border-b border-slate-100 pb-2">Destination</h3>
-                                    <div className="space-y-1">
-                                        <p className="font-bold text-lg">{result?.destination}</p>
-                                        <p className="text-slate-500 text-sm">ETA: {result?.eta}</p>
-                                    </div>
+                                
+                                {/* FedEx Confirmed Stamp */}
+                                <div className="absolute top-0 right-0 border-2 border-[#4D148C] text-[#4D148C] font-bold px-4 py-2 text-sm transform rotate-[-5deg]">
+                                    FEDEX CONFIRMED
                                 </div>
                             </div>
 
-                            <div className="mb-12">
-                                <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 border-b border-slate-100 pb-2">Shipment Details</h3>
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-slate-50 text-slate-500">
+                            <div className="border-b-2 border-[#4D148C] mb-8"></div>
+
+                            {/* Sender Info */}
+                            <div className="mb-8">
+                                <h3 className="text-[#4D148C] text-lg mb-2">Sender Information</h3>
+                                <div className="border-t-2 border-[#4D148C] pt-4 flex justify-between">
+                                    <span className="text-gray-500">Name:</span>
+                                    <span className="font-bold">{result?.sender_name || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between mt-4">
+                                    <span className="text-gray-500">Contact:</span>
+                                    <span className="font-bold">{result?.sender_contact || 'N/A'}</span>
+                                </div>
+                            </div>
+
+                            {/* Receiver Info */}
+                            <div className="mb-10">
+                                <h3 className="text-[#4D148C] text-lg mb-2">Receiver Information</h3>
+                                <div className="border-t-2 border-[#4D148C] pt-4 flex justify-between">
+                                    <span className="text-gray-500">Name:</span>
+                                    <span className="font-bold">{result?.receiver_name || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between mt-4">
+                                    <span className="text-gray-500">Contact:</span>
+                                    <span className="font-bold">{result?.receiver_contact || 'N/A'}</span>
+                                </div>
+                            </div>
+
+                            {/* Shipment Details */}
+                            <div className="mb-20">
+                                <h3 className="text-[#4D148C] text-lg mb-2">Shipment Details</h3>
+                                <div className="border-t-2 border-[#4D148C]"></div>
+                                <table className="w-full text-left text-sm mt-4">
+                                    <thead className="bg-[#F3F4F6]">
                                         <tr>
-                                            <th className="p-3">Item Description</th>
-                                            <th className="p-3">Weight</th>
-                                            <th className="p-3">Service</th>
-                                            <th className="p-3">Carrier</th>
+                                            <th className="p-3 font-bold w-1/4">Dispatch<br/>Date</th>
+                                            <th className="p-3 font-bold w-1/4">Estimated<br/>Delivery</th>
+                                            <th className="p-3 font-bold w-1/2">Package Description</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100">
+                                    <tbody>
                                         <tr>
-                                            <td className="p-3 font-medium">Logistics Package / Cargo</td>
-                                            <td className="p-3">{result?.weight} kg</td>
-                                            <td className="p-3">{result?.service}</td>
-                                            <td className="p-3">{result?.carrier}</td>
+                                            <td className="p-3 align-top">{result?.dispatch_date || 'N/A'}</td>
+                                            <td className="p-3 align-top">{result?.estimated_delivery || 'N/A'}</td>
+                                            <td className="p-3 align-top uppercase leading-relaxed">
+                                                {result?.package_description || 'N/A'}
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div className="border-b border-gray-100 mt-4"></div>
                             </div>
 
-                            <div className="bg-slate-50 p-6 rounded-xl mb-12">
-                                <h3 className="text-xs font-bold uppercase text-slate-400 mb-2">Detailed Tracking</h3>
-                                <div className="font-mono text-sm">Current Location: <span className="font-bold text-slate-900">{result?.current_location || 'Processing'}</span></div>
-                            </div>
-
-                            <div className="text-center text-xs text-slate-400 border-t border-slate-100 pt-8">
-                                <p>This document is an official receipt of shipment generated by Pacific Cargo Logistics Systems.</p>
-                                <p className="mt-1">&copy; {new Date().getFullYear()} Pacific Cargo. All rights reserved.</p>
+                            {/* Footer */}
+                            <div className="relative pt-8">
+                                <p className="text-gray-500 text-xs mb-1">FedEx Ground® • 24-48 Hour Delivery • Track online at www.fedex.com</p>
+                                <p className="text-gray-500 text-xs">Customer Service: 1.800.463.3339 • This is not a bill</p>
+                                
+                                {/* Verified Stamp */}
+                                <div className="absolute bottom-[-40px] left-0 border-2 border-dashed border-[#009933] text-[#009933] font-bold px-4 py-2 text-sm transform rotate-[10deg]">
+                                    ? VERIFIED
+                                </div>
                             </div>
                         </div>
                     </div>
