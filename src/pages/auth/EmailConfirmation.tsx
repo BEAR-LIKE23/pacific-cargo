@@ -1,35 +1,53 @@
-
 import { Link } from 'react-router-dom';
-import { Mail, ArrowRight } from 'lucide-react';
+import { Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 const EmailConfirmation = () => {
     return (
-        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-                <div className="bg-brand-600 p-8 text-center">
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                        <Mail className="text-white" size={32} />
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Decorative Orbs */}
+            <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-brand-600/10 rounded-full blur-[120px] -translate-y-1/2 -translate-x-1/3 pointer-events-none"></div>
+            <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-accent/20 rounded-full blur-[100px] translate-y-1/3 translate-x-1/3 pointer-events-none"></div>
+
+            <div className="max-w-lg w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10 border border-slate-100">
+                {/* Header Gradient Area */}
+                <div className="bg-gradient-to-br from-brand-600 to-brand-800 p-12 text-center relative overflow-hidden">
+                    {/* Subtle pattern overlay */}
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+                    
+                    <div className="relative z-10">
+                        <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/20 shadow-inner">
+                            <Mail className="text-white" size={40} strokeWidth={1.5} />
+                        </div>
+                        <h1 className="text-3xl font-black text-white mb-3 tracking-tight">Check Your Inbox</h1>
+                        <p className="text-brand-100 text-lg">We've sent a magic link your way.</p>
                     </div>
-                    <h1 className="text-2xl font-bold text-white mb-2">Check Your Email</h1>
-                    <p className="text-brand-100">We've sent a confirmation link to your inbox.</p>
                 </div>
 
-                <div className="p-8 text-center">
-                    <div className="mb-6">
-                        <p className="text-slate-600 mb-4">
+                {/* Content Area */}
+                <div className="p-10 text-center">
+                    <div className="mb-8">
+                        <p className="text-slate-600 text-lg mb-8 leading-relaxed">
                             Please verify your email address to activate your account and access your dashboard.
                         </p>
-                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm text-slate-500">
-                            <p>Can't find the email? Check your spam folder or try logging in to resend.</p>
+                        
+                        <div className="bg-brand-50/50 p-5 rounded-2xl border border-brand-100 flex items-start text-left gap-4">
+                            <CheckCircle2 className="text-brand-500 shrink-0 mt-0.5" size={24} />
+                            <div>
+                                <h4 className="font-bold text-slate-800 mb-1">Didn't receive the email?</h4>
+                                <p className="text-slate-500 text-sm">
+                                    Sometimes they get lost. Check your spam folder or try logging in to trigger a new link.
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="pt-2">
                         <Link
                             to="/login"
-                            className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2"
+                            className="w-full group bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/20 transition-all flex items-center justify-center gap-2"
                         >
-                            Back to Login <ArrowRight size={18} />
+                            Return to Login 
+                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
                 </div>

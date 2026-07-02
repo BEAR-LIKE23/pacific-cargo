@@ -4,6 +4,7 @@ import AdminLayout from '../../layouts/AdminLayout';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import Toast, { ToastType } from '../../components/Toast';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const SuperAdminDashboard = () => {
     const navigate = useNavigate();
@@ -11,6 +12,13 @@ const SuperAdminDashboard = () => {
     const [stats, setStats] = useState({ users: 0, shipments: 0, revenue: 0 });
     const [transactions, setTransactions] = useState<any[]>([]);
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        isDestructive: false,
+        onConfirm: () => {}
+    });
 
     useEffect(() => {
         fetchAdminData();
@@ -65,9 +73,15 @@ const SuperAdminDashboard = () => {
         }
     };
 
-    const handleApprove = async (txId: string, userId: string, amount: number) => {
-        if (!confirm('Are you sure you want to approve this deposit?')) return;
+    const triggerConfirm = (title: string, message: string, isDestructive: boolean, onConfirm: () => void) => {
+        setConfirmModal({ isOpen: true, title, message, isDestructive, onConfirm });
+    };
 
+    const requestApprove = (txId: string, userId: string, amount: number) => {
+        triggerConfirm('Approve Deposit', 'Are you sure you want to approve this deposit and fund the user wallet?', false, () => handleApprove(txId, userId, amount));
+    };
+
+    const handleApprove = async (txId: string, userId: string, amount: number) => {
         try {
             // 1. Fetch current user balance
             const { data: userProfile, error: profileErr } = await supabase
@@ -108,8 +122,11 @@ const SuperAdminDashboard = () => {
         }
     };
 
+    const requestReject = (txId: string) => {
+        triggerConfirm('Reject Transaction', 'Are you sure you want to reject this transaction?', true, () => handleReject(txId));
+    };
+
     const handleReject = async (txId: string) => {
-        if (!confirm('Reject this transaction?')) return;
         const { error } = await supabase
             .from('transactions')
             .update({ status: 'failed' })
@@ -125,6 +142,14 @@ const SuperAdminDashboard = () => {
 
     return (
         <AdminLayout>
+            <ConfirmModal 
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                isDestructive={confirmModal.isDestructive}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+            />
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 animate-fade-in-up">
@@ -245,14 +270,14 @@ const SuperAdminDashboard = () => {
                                             {tx.status === 'pending' && (
                                                 <>
                                                     <button
-                                                        onClick={() => handleApprove(tx.id, tx.user_id, tx.amount)}
-                                                        className="p-2.5 text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white rounded-xl transition-all shadow-sm"
-                                                        title="Approve"
+                                                        onClick={() => requestApprove(tx.id, tx.user_id, tx.amount)}
+                                                        className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition"
+                                                        title="Approve & Fund"
                                                     >
-                                                        <CheckCircle size={18} />
+                                                        <CheckCircle size={16} />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleReject(tx.id)}
+                                                        onClick={() => requestReject(tx.id)}
                                                         className="p-2.5 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-xl transition-all shadow-sm"
                                                         title="Reject"
                                                     >

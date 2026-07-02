@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { Search, MapPin, CheckCircle, Eye, Download, Loader2, Save, X, Plus, AlertCircle, XCircle, ShieldCheck } from 'lucide-react';
 import Toast, { ToastType } from '../../components/Toast';
 import WaybillTemplate from '../../components/WaybillTemplate';
+import ConfirmModal from '../../components/ConfirmModal';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
@@ -14,6 +15,13 @@ const AdminShipments = () => {
     const [filter, setFilter] = useState('all'); // all, pending_approval, in_transit
     const [searchTerm, setSearchTerm] = useState('');
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        isDestructive: false,
+        onConfirm: () => {}
+    });
 
     // Edit Modal State
     const [editingShipment, setEditingShipment] = useState<any>(null);
@@ -70,9 +78,15 @@ const AdminShipments = () => {
         setToast({ message, type });
     };
 
-    const handleApprovePayment = async (id: string) => {
-        if (!confirm('Confirm payment securely received? This will mark the shipment as Paid.')) return;
+    const triggerConfirm = (title: string, message: string, isDestructive: boolean, onConfirm: () => void) => {
+        setConfirmModal({ isOpen: true, title, message, isDestructive, onConfirm });
+    };
 
+    const requestApprovePayment = (id: string) => {
+        triggerConfirm('Approve Payment', 'Confirm payment securely received? This will mark the shipment as Paid.', false, () => handleApprovePayment(id));
+    };
+
+    const handleApprovePayment = async (id: string) => {
         const { error } = await supabase
             .from('shipments')
             .update({
@@ -86,10 +100,14 @@ const AdminShipments = () => {
         } else {
             showToast('Payment Approved');
         }
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const requestRejectPayment = (id: string) => {
+        triggerConfirm('Reject Payment', 'Reject this payment proof?', true, () => handleRejectPayment(id));
     };
 
     const handleRejectPayment = async (id: string) => {
-        if (!confirm('Reject this payment proof?')) return;
         const { error } = await supabase
             .from('shipments')
             .update({ payment_status: 'Rejected' })
@@ -97,6 +115,7 @@ const AdminShipments = () => {
 
         if (error) showToast('Error rejecting payment', 'error');
         else showToast('Payment Rejected', 'info');
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
     };
 
     const openEditModal = (shipment: any) => {
@@ -179,6 +198,14 @@ const AdminShipments = () => {
 
     return (
         <AdminLayout>
+            <ConfirmModal 
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                isDestructive={confirmModal.isDestructive}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+            />
             <div className="fixed -left-[1000vw] -top-[1000vh]">
                 {selectedShipment && (
                     <WaybillTemplate ref={waybillRef} shipment={selectedShipment} />
@@ -266,15 +293,15 @@ const AdminShipments = () => {
                                                 {shipment.payment_status === 'Pending Confirmation' && (
                                                     <>
                                                         <button
-                                                            onClick={() => handleApprovePayment(shipment.id)}
-                                                            className="bg-emerald-100 text-emerald-700 p-2 rounded hover:bg-emerald-200 transition"
+                                                            onClick={() => requestApprovePayment(shipment.id)}
+                                                            className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition"
                                                             title="Approve Payment"
                                                         >
                                                             <CheckCircle size={16} />
                                                         </button>
                                                         <button
-                                                            onClick={() => handleRejectPayment(shipment.id)}
-                                                            className="bg-red-100 text-red-700 p-2 rounded hover:bg-red-200 transition"
+                                                            onClick={() => requestRejectPayment(shipment.id)}
+                                                            className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
                                                             title="Reject Payment"
                                                         >
                                                             <XCircle size={16} />
