@@ -4,6 +4,7 @@ import { ArrowLeft, CreditCard, CheckCircle2, ArrowRight, Upload } from 'lucide-
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import Toast, { ToastType } from '../../components/Toast';
+import { sendShipmentEmail } from '../../utils/emailService';
 
 const CreateShipment = () => {
     const navigate = useNavigate();
@@ -93,7 +94,15 @@ const CreateShipment = () => {
 
             if (shipmentError) throw shipmentError;
 
-            if (shipmentError) throw shipmentError;
+            // 4. Send Email Notification
+            await sendShipmentEmail(
+                user.email,
+                user.user_metadata?.full_name || 'User',
+                trackingId,
+                'On Hold', // Initial status
+                formData.receiver_name,
+                formData.destination
+            );
 
             showToast(`Shipment Registered! Tracking ID: ${trackingId}`);
             setTimeout(() => navigate('/dashboard'), 2000);

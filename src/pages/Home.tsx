@@ -17,19 +17,19 @@ const SERVICES = [
         title: "Ocean Freight",
         description: "Cost-effective global shipping solutions for large volume cargo with real-time tracking.",
         icon: Ship,
-        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop"
+        image: "/images/ocean_freight.png"
     },
     {
         title: "Air Transport",
         description: "Fast and reliable air cargo services for time-sensitive shipments worldwide.",
         icon: Plane,
-        image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop"
+        image: "/images/air_transport.png"
     },
     {
         title: "Warehousing",
         description: "Secure storage and distribution services to streamline your supply chain operations.",
         icon: Warehouse,
-        image: "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?q=80&w=2072&auto=format&fit=crop"
+        image: "/images/warehousing.png"
     }
 ];
 
